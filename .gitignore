@@ -1,0 +1,109 @@
+# Miscellaneous (existente)
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related (existente)
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code (existente comentado)
+#.vscode/
+
+# ========== FLUTTER SPECÍFICO ========== #
+
+# Flutter/Dart/Pub
+**/doc/api/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+pubspec.lock  # Controversial - algunos lo incluyen, otros no
+
+# Android
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+**/android/app/.gradle
+**/android/app/build/
+**/android/app/key.properties
+**/android/app/local.properties
+**/android/gradle/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/.idea/
+
+# iOS
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/ios/Pods/
+**/ios/Runner.xcodeproj/project.xcworkspace/
+**/ios/Runner.xcodeproj/xcuserdata/
+**/ios/Runner.xcworkspace/
+**/ios/.symlinks/
+
+# Web
+**/web/.dart_tool/
+
+# Test coverage
+.coverage/
+coverage/
+
+# Archivos de entorno
+.env
+.env.development
+.env.production
+.env.local
+
+# Archivos de configuración personalizados
+*.config.dart
+
+# Archivos generados por Flutter
+*.swp
+*.swo
+*.swn
+*.swm
+*.swl
+*.swk
+*.swj
+*.swi
+*.swh
+*.swg
+*.swf
+*.swe
+*.swd
+*.swc
+*.swb
+*.swa
+*.sw9
+*.sw8
+*.sw7
+*.sw6
+*.sw5
+*.sw4
+*.sw3
+*.sw2
+*.sw1
+*.sw0
