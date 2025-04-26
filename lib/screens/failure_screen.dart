@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-class Sucess extends StatelessWidget {
+
+class  FailureScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(

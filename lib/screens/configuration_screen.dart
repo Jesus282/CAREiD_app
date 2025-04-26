@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-class Story extends StatelessWidget {
+class ConfigurationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(

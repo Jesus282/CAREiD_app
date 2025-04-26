@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-class Profile10 extends StatelessWidget {
+class FamilyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(

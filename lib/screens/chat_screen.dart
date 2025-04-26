@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-class ChatTyping extends StatelessWidget {
+class ChatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-class CalenderEvent extends StatelessWidget {
+class CalendarScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-class Frame1821 extends StatelessWidget {
+class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(

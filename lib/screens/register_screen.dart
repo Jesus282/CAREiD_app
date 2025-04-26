@@ -65,6 +65,7 @@ class RegisterScreen extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
+                  Navigator.pushNamed(context, '/plan');
                   // Aquí va la lógica de registro
                 },
                 child: const Text("Registrarse", style: TextStyle(fontSize: 18, color: Colors.white)),
@@ -72,7 +73,7 @@ class RegisterScreen extends StatelessWidget {
               const SizedBox(height: 15),
               TextButton(
                 onPressed: () {
-                  // Navegar a pantalla de inicio de sesión
+                  Navigator.pushNamed(context, '/login');
                 },
                 child: const Text("¿Ya tienes cuenta? Inicia sesión"),
               ),

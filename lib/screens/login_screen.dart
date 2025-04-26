@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+
 class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -48,6 +49,7 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
+                  Navigator.pushNamed(context, '/menu');
                   // Aquí va la lógica de inicio de sesión
                 },
                 child: const Text("Iniciar Sesión", style: TextStyle(fontSize: 18, color: Colors.white)),

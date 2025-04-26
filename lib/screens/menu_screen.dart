@@ -1,107 +1,95 @@
 import 'package:flutter/material.dart';
 
 class MenuScreen extends StatelessWidget {
-  const MenuScreen({super.key});
+  const MenuScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F6),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      appBar: AppBar(
+        title: const Text('CAREiD'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              // Acción del menú
+            },
+          ),
+        ],
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemCount: 5, // Número de elementos
+        itemBuilder: (context, index) {
+          return Card(
+            margin: const EdgeInsets.only(bottom: 16.0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+            color: Colors.blue[50],
+            child: ListTile(
+              leading: const CircleAvatar(
+                radius: 25,
+                backgroundColor: Colors.blueAccent,
+                child: Icon(Icons.person, color: Colors.white),
+              ),
+              title: Container(
+                height: 10,
+                color: Colors.blue[100],
+                margin: const EdgeInsets.only(bottom: 6.0),
+              ),
+              subtitle: Container(
+                height: 10,
+                color: Colors.blue[100],
+              ),
+              trailing: Wrap(
+                spacing: 12,
                 children: [
-                  Text(
-                    '¡Bienvenido/a!',
-                    style: Theme.of(context).textTheme.headlineMedium,
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () {
+                      // Acción de editar
+                    },
                   ),
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundImage: AssetImage('assets/user.png'),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      // Acción de eliminar
+                    },
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-              Text(
-                '¿Qué deseas hacer hoy?',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  children: [
-                    _buildMenuCard(
-                      context,
-                      icon: Icons.calendar_today,
-                      label: 'Agendar Cita',
-                      onTap: () {},
-                    ),
-                    _buildMenuCard(
-                      context,
-                      icon: Icons.person,
-                      label: 'Perfil',
-                      onTap: () {},
-                    ),
-                    _buildMenuCard(
-                      context,
-                      icon: Icons.medication,
-                      label: 'Mis Medicamentos',
-                      onTap: () {},
-                    ),
-                    _buildMenuCard(
-                      context,
-                      icon: Icons.settings,
-                      label: 'Configuración',
-                      onTap: () {},
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuCard(BuildContext context,
-      {required IconData icon, required String label, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            )
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: Theme.of(context).primaryColor),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodyLarge,
-              textAlign: TextAlign.center,
             ),
-          ],
-        ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Acción de añadir nuevo elemento
+        },
+        backgroundColor: Colors.blue,
+        child: const Icon(Icons.add, size: 35),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: '',
+          ),
+        ],
+        currentIndex: 0,
+        onTap: (index) {
+          // Manejar cambios de pestañas aquí
+        },
       ),
     );
   }

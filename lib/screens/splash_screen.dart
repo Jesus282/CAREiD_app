@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -15,10 +14,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     // Navegar después de 2.5 segundos (tiempo total de animaciones)
     Future.delayed(2500.ms, () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
-      );
+      Navigator.pushReplacementNamed(context, '/login');
     });
   }
 

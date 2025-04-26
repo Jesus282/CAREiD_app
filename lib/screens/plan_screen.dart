@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-class Price1 extends StatelessWidget {
+class PlanScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(

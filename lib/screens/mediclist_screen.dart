@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-class Chat extends StatelessWidget {
+class MedicListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -41,7 +41,6 @@ class Chat extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     spacing: 16,
                     children: [
-                    ,
                     ],
                   ),
                 ),

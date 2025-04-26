@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-class BlogListLarge extends StatelessWidget {
+class RecordScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
