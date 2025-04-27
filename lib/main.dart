@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:supabase_flutter/supabase_flutter.dart';//Conexion BD
+//import 'package:supabase_flutter/supabase_flutter.dart';//Conexion BD
 
 import 'screens/login_screen.dart';
 import 'screens/splash_screen.dart';
@@ -21,15 +21,15 @@ import 'screens/profilecosult_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/record_screen.dart'; 
 import 'screens/settings_screen.dart';
-
+import 'screens/help_screen.dart';
 
 // flutter run -d edge//
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Supabase.initialize(
-    url: 'https://mgbdvzesfyrzqdikalub.supabase.co', // URL de tu proyecto
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nYmR2emVzZnlyenFkaWthbHViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNzAyMzIsImV4cCI6MjA2MDg0NjIzMn0.sU3O8DpBLqS9AP9osi796ZX-wmZgFMDOl0oQEmLw8uw', // Clave pública de tu proyecto
-  );
+  //await Supabase.initialize(
+   //url: 'https://mgbdvzesfyrzqdikalub.supabase.co', // URL de tu proyecto
+   //anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nYmR2emVzZnlyenFkaWthbHViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNzAyMzIsImV4cCI6MjA2MDg0NjIzMn0.sU3O8DpBLqS9AP9osi796ZX-wmZgFMDOl0oQEmLw8uw', // Clave pública de tu proyecto
+  //);
   runApp(const MyApp());
 } 
 
@@ -57,16 +57,17 @@ class MyApp extends StatelessWidget {
   '/calendario': (context) => CalendarScreen(),
   '/chat': (context) => ChatScreen(),
   '/alarma': (context) => AlarmScreen(),
-  '/clinicas': (context) => ClinicList(),
+  '/clinicas': (context) => ClinicListScreen(),
   '/contacto': (context) => ContactScreen(),
   '/historial': (context) => HistoryScreen(),
   '/medicamentos': (context) => MedicListScreen(),
   '/perfilconsulta': (context) => ProfileConsultScreen(),
-  '/perfil': (context) => ProfileScreen(),
+  '/perfil': (context) => profile_screen(),
   '/registroclinico': (context) => RecordScreen(),
   '/ajustes': (context) => SettingsScreen(),
   '/plan': (context) => PlanScreen(),
   '/error': (context) => FailureScreen(),
+  '/ayuda':(context)=> HelpScreen(),
 },
 
       //home: const SplashScreen(),

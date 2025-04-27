@@ -1,527 +1,133 @@
 import 'package:flutter/material.dart';
-class AlarmScreen extends StatelessWidget {
+import 'package:intl/intl.dart';
+
+class AlarmScreen extends StatefulWidget {
+  const AlarmScreen({Key? key}) : super(key: key);
+
+  @override
+  State<AlarmScreen> createState() => _AlarmScreenState();
+}
+
+class _AlarmScreenState extends State<AlarmScreen> {
+  List<Map<String, dynamic>> alarmas = [];
+
+  void _agregarAlarma() async {
+    TimeOfDay? horaSeleccionada = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (horaSeleccionada != null) {
+      TextEditingController _notaController = TextEditingController();
+
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Agregar Nota de Alarma'),
+            content: TextField(
+              controller: _notaController,
+              decoration: const InputDecoration(hintText: 'Ej: Tomar medicina'),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    alarmas.add({
+                      'hora': horaSeleccionada,
+                      'nota': _notaController.text,
+                      'activo': true,
+                    });
+                  });
+                  Navigator.pop(context);
+                },
+                child: const Text('Guardar'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  void _activarDesactivarAlarma(int index) {
+    setState(() {
+      alarmas[index]['activo'] = !alarmas[index]['activo'];
+    });
+  }
+
+  void _eliminarAlarma(int index) {
+    setState(() {
+      alarmas.removeAt(index);
+    });
+  }
+
+  String _formatearHora(TimeOfDay hora) {
+    final now = DateTime.now();
+    final dt = DateTime(now.year, now.month, now.day, hora.hour, hora.minute);
+    return DateFormat.jm().format(dt);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 375,
-          height: 812,
-          clipBehavior: Clip.antiAlias,
-          decoration: ShapeDecoration(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(
-              side: BorderSide(
-                width: 2,
-                color: const Color(0xFF0092EC),
-              ),
-              borderRadius: BorderRadius.circular(40),
-            ),
-            shadows: [
-              BoxShadow(
-                color: Color(0xFF0093ED),
-                blurRadius: 0,
-                offset: Offset(0, 8),
-                spreadRadius: 0,
-              )
-            ],
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                left: 0,
-                top: 0,
-                child: Container(
-                  width: 375,
-                  padding: const EdgeInsets.only(
-                    top: 48,
-                    left: 24,
-                    right: 24,
-                    bottom: 32,
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(color: Colors.white),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 80,
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 12,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: 36,
-                                height: 12,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFF7DD8FF),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: 101,
-                        height: 12,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: 101,
-                                height: 12,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFF0092EC),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: 36,
-                        height: 12,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: 36,
-                                height: 12,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFF7DD8FF),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 24,
-                top: 118,
-                child: Container(
-                  width: 327,
-                  padding: const EdgeInsets.all(24),
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFFD6F5FF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 12,
-                    children: [
-                      Container(
-                        width: 213,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 12,
-                          children: [
-                            Text(
-                              '6:02',
-                              style: TextStyle(
-                                color: const Color(0xFF0092EC),
-                                fontSize: 54,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w700,
-                                height: 1.19,
-                              ),
-                            ),
-                            Container(
-                              width: 159,
-                              height: 18,
-                              child: Stack(
-                                children: [
-                                  Positioned(
-                                    left: 0,
-                                    top: 0,
-                                    child: Container(
-                                      width: 159,
-                                      height: 18,
-                                      decoration: ShapeDecoration(
-                                        color: const Color(0xFF7DD8FF),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: 60,
-                        height: 36,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: 60,
-                                height: 36,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFF7DD8FF),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 4,
-                              top: 4,
-                              child: Container(
-                                width: 28,
-                                height: 28,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFFD6F5FF),
-                                  shape: OvalBorder(
-                                    side: BorderSide(
-                                      width: 2,
-                                      color: const Color(0xFF0071B1),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 24,
-                top: 456,
-                child: Container(
-                  width: 327,
-                  padding: const EdgeInsets.all(24),
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFFD6F5FF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 12,
-                    children: [
-                      Container(
-                        width: 213,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 12,
-                          children: [
-                            Text(
-                              '6:02',
-                              style: TextStyle(
-                                color: const Color(0xFF0092EC),
-                                fontSize: 54,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w700,
-                                height: 1.19,
-                              ),
-                            ),
-                            Container(
-                              width: 159,
-                              height: 18,
-                              child: Stack(
-                                children: [
-                                  Positioned(
-                                    left: 0,
-                                    top: 0,
-                                    child: Container(
-                                      width: 159,
-                                      height: 18,
-                                      decoration: ShapeDecoration(
-                                        color: const Color(0xFF7DD8FF),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: 60,
-                        height: 36,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: 60,
-                                height: 36,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFF7DD8FF),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 4,
-                              top: 4,
-                              child: Container(
-                                width: 28,
-                                height: 28,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFFD6F5FF),
-                                  shape: OvalBorder(
-                                    side: BorderSide(
-                                      width: 2,
-                                      color: const Color(0xFF0071B1),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 24,
-                top: 625,
-                child: Container(
-                  width: 327,
-                  padding: const EdgeInsets.all(24),
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFFD6F5FF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 12,
-                    children: [
-                      Container(
-                        width: 213,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 12,
-                          children: [
-                            Text(
-                              '21:72',
-                              style: TextStyle(
-                                color: const Color(0xFF0092EC),
-                                fontSize: 54,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w700,
-                                height: 1.19,
-                              ),
-                            ),
-                            Container(
-                              width: 159,
-                              height: 18,
-                              child: Stack(
-                                children: [
-                                  Positioned(
-                                    left: 0,
-                                    top: 0,
-                                    child: Container(
-                                      width: 159,
-                                      height: 18,
-                                      decoration: ShapeDecoration(
-                                        color: const Color(0xFF7DD8FF),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: 60,
-                        height: 36,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: 60,
-                                height: 36,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFF7DD8FF),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 4,
-                              top: 4,
-                              child: Container(
-                                width: 28,
-                                height: 28,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFFD6F5FF),
-                                  shape: OvalBorder(
-                                    side: BorderSide(
-                                      width: 2,
-                                      color: const Color(0xFF0071B1),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 24,
-                top: 287,
-                child: Container(
-                  width: 327,
-                  padding: const EdgeInsets.all(24),
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFF0092EC),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 12,
-                    children: [
-                      Container(
-                        width: 213,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 12,
-                          children: [
-                            Text(
-                              '12:99',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 54,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w700,
-                                height: 1.19,
-                              ),
-                            ),
-                            Container(
-                              width: 159,
-                              height: 18,
-                              child: Stack(
-                                children: [
-                                  Positioned(
-                                    left: 0,
-                                    top: 0,
-                                    child: Container(
-                                      width: 159,
-                                      height: 18,
-                                      decoration: ShapeDecoration(
-                                        color: const Color(0xFF7DD8FF),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: 60,
-                        height: 36,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: 60,
-                                height: 36,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFFD6F5FF),
-                                  shape: RoundedRectangleBorder(
-                                    side: BorderSide(
-                                      width: 2,
-                                      color: const Color(0xFF0092EC),
-                                    ),
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 28,
-                              top: 4,
-                              child: Container(
-                                width: 28,
-                                height: 28,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFF0092EC),
-                                  shape: OvalBorder(),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mis Recordatorios'),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
         ),
-      ],
+      ),
+      body: alarmas.isEmpty
+          ? const Center(child: Text('No tienes alarmas configuradas'))
+          : ListView.builder(
+              itemCount: alarmas.length,
+              itemBuilder: (context, index) {
+                var alarma = alarmas[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: ListTile(
+                    leading: Icon(
+                      alarma['activo'] ? Icons.alarm_on : Icons.alarm_off,
+                      color: alarma['activo'] ? Colors.green : Colors.grey,
+                      size: 40,
+                    ),
+                    title: Text(_formatearHora(alarma['hora'])),
+                    subtitle: Text(alarma['nota']),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            alarma['activo'] ? Icons.toggle_on : Icons.toggle_off,
+                            color: alarma['activo'] ? Colors.green : Colors.grey,
+                            size: 36,
+                          ),
+                          onPressed: () => _activarDesactivarAlarma(index),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _eliminarAlarma(index),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _agregarAlarma,
+        child: const Icon(Icons.add),
+        backgroundColor: Colors.blue,
+      ),
     );
   }
 }
