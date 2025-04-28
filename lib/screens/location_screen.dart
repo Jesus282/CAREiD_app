@@ -25,7 +25,10 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
 
   Future<void> _getUserLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
+    if (!serviceEnabled) {
+      bool enabled = await Geolocator.openLocationSettings();
+      if (!enabled) return;
+    }
 
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -33,38 +36,53 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
       if (permission == LocationPermission.denied) return;
     }
 
-    Position position = await Geolocator.getCurrentPosition();
-    setState(() {
-      _userLocation = LatLng(position.latitude, position.longitude);
-    });
+    if (permission == LocationPermission.deniedForever) {
+      return;
+    }
 
-    _getNearbyMedicalFacilities();
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+      );
+      
+      setState(() {
+        _userLocation = LatLng(position.latitude, position.longitude);
+      });
+
+      _getNearbyMedicalFacilities();
+    } catch (e) {
+      print('Error obteniendo ubicación: $e');
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _getNearbyMedicalFacilities() async {
-    final placesService = GeoCoding(
-      apiKey: 'pk.eyJ1IjoiamVzdXMyNiIsImEiOiJjbWEwd2x4ZmowMThoMmpweXU5YTVudnUyIn0.r9zqvJaVg_p1r1g7jQthcg',
-      country: 'mx',
-      limit: 20,
-    );
+    if (_userLocation == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
 
     try {
-      var results = await placesService.getPlaces(
+      final placesService = PlacesSearch(
+        apiKey: 'pk.eyJ1IjoiamVzdXMyNiIsImEiOiJjbWEwd2x4ZmowMThoMmpweXU5YTVudnUyIn0.r9zqvJaVg_p1r1g7jQthcg',
+      );
+
+      final response = await placesService.getPlaces(
         'hospital',
-        proximity: Proximity.LatLong(
+        proximity: Location(
           lat: _userLocation!.latitude,
-          long: _userLocation!.longitude,
+          lng: _userLocation!.longitude,
         ),
+        country: 'mx',
+        limit: 20,
       );
 
       setState(() {
-        _medicalMarkers = (results.success ?? []).map((place) {
+        _medicalMarkers = response.features?.map((place) {
           return Marker(
-            width: 40.0,
-            height: 40.0,
             point: LatLng(
-              place.geometry?.coordinates[1] ?? 0, // latitude
-              place.geometry?.coordinates[0] ?? 0, // longitude
+              place.center?[1] ?? 0, // latitude
+              place.center?[0] ?? 0, // longitude
             ),
             child: const Icon(
               Icons.local_hospital,
@@ -72,7 +90,8 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
               size: 40,
             ),
           );
-        }).toList();
+        }).toList() ?? [];
+        
         _isLoading = false;
       });
 
@@ -107,20 +126,13 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
               ),
               children: [
                 TileLayer(
-                  urlTemplate:
-                      'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=TU_API_KEY',
-                  additionalOptions: {
-                    'accessToken': 'TU_API_KEY',
-                    'id': 'mapbox.streets',
-                  },
+                  urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiamVzdXMyNiIsImEiOiJjbWEwd2x4ZmowMThoMmpweXU5YTVudnUyIn0.r9zqvJaVg_p1r1g7jQthcg',
                   userAgentPackageName: 'com.example.careid',
                 ),
                 MarkerLayer(
                   markers: [
                     if (_userLocation != null)
                       Marker(
-                        width: 50.0,
-                        height: 50.0,
                         point: _userLocation!,
                         child: const Icon(
                           Icons.person_pin_circle,

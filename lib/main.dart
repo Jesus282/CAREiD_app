@@ -23,7 +23,7 @@ import 'screens/profile_screen.dart';
 import 'screens/record_screen.dart'; 
 import 'screens/settings_screen.dart';
 import 'screens/help_screen.dart';
-import 'screens/location_screen.dart';
+//import 'screens/location_screen.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 // flutter run -d edge//
@@ -36,8 +36,8 @@ import 'package:firebase_core/firebase_core.dart';
   //runApp(const MyApp());
 //} 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+ /* WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();*/
   runApp(const MyApp());
 }
 
@@ -76,7 +76,7 @@ class MyApp extends StatelessWidget {
   '/plan': (context) => PlanScreen(),
   '/error': (context) => FailureScreen(),
   '/ayuda':(context)=> HelpScreen(),
-  '/location':(context)=> MedicalMapScreen(),
+  //'/location':(context)=> MedicalMapScreen(),
 },
 
 
