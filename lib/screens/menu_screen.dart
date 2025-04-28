@@ -185,9 +185,22 @@ class _MenuScreenState extends State<MenuScreen> {
         onTap: (index) {
           setState(() {
             _currentIndex = index;
-            // Aquí podemos cambiar de pantalla dependiendo de index más adelante
-          });
+            });
+
+  // Agregamos la navegación
+          switch (index) {
+            case 1:
+            Navigator.pushNamed(context, '/location'); // Ruta para Mapas
+            break;
+            case 2:
+            Navigator.pushNamed(context, '/chat'); // Ruta para Mensajes
+            break;
+            default:
+      // No hacer nada si es Inicio
+            break;
+          }
         },
+
       ),
     );
   }

@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 191, 207, 212),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -79,12 +79,17 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset("assets/Logo.png", height: 100), // Logo de la app
-                const SizedBox(height: 20),
+                const Text(
+                  "CAREiD",
+                  style: TextStyle(fontSize: 52, fontWeight: FontWeight.bold),
+                ),
                 const Text(
                   "Iniciar Sesión",
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
+                Image.asset("assets/Logop.png", height: 100), // Logo de la app
+                const SizedBox(height: 20),
+                
                 const SizedBox(height: 20),
                 TextField(
                   controller: _emailController,
