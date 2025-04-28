@@ -62,7 +62,7 @@ class MyApp extends StatelessWidget {
   '/contacto': (context) => ContactScreen(),
   '/historial': (context) => HistoryScreen(),
   '/medicamentos': (context) => MedicListScreen(),
-  '/perfilconsulta': (context) => ProfileConsultScreen(),
+  '/perfilconsulta': (context) => ConsultaScreen(),
   '/perfil': (context) => profile_screen(),
   '/registroclinico': (context) => RecordScreen(),
   '/ajustes': (context) => SettingsScreen(),

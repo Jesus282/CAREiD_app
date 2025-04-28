@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:login/screens/BaseScreen.dart';
 class ContactScreen extends StatefulWidget {
   const ContactScreen({Key? key}) : super(key: key);
 
@@ -8,6 +8,27 @@ class ContactScreen extends StatefulWidget {
 }
 
 class _ContactScreenState extends State<ContactScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  int _currentIndex = 0;
+
+  void _onBottomNavTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    // Navegación según el índice
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(context, '/menu');
+        break;
+      case 1:
+        Navigator.pushReplacementNamed(context, '/location');
+        break;
+      case 2:
+        Navigator.pushReplacementNamed(context, '/chat');
+        break;
+    }
+  }
+
   List<String> cuentas = ['Cuenta Principal', 'Cuenta Secundaria'];
   int cuentaSeleccionada = -1;
 
@@ -16,15 +37,6 @@ class _ContactScreenState extends State<ContactScreen> {
       SnackBar(
         content: Text('Acción: $accion realizada exitosamente.'),
         backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  void _errorCambio(String mensaje) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error: $mensaje'),
-        backgroundColor: Colors.red,
       ),
     );
   }
@@ -44,7 +56,6 @@ class _ContactScreenState extends State<ContactScreen> {
   }
 
   void _recuperarCuenta() {
-    // Aquí se podría abrir otra pantalla de recuperación real
     _confirmarCambio('Recuperación de cuenta');
   }
 
@@ -57,11 +68,10 @@ class _ContactScreenState extends State<ContactScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cambiar de Cuenta'),
-        centerTitle: true,
-      ),
+    return BaseScreen(
+      scaffoldKey: _scaffoldKey,
+      currentIndex: _currentIndex,
+      onBottomNavTapped: _onBottomNavTapped,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -79,7 +89,10 @@ class _ContactScreenState extends State<ContactScreen> {
                   return Card(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: ListTile(
-                      leading: Icon(Icons.account_circle, color: cuentaSeleccionada == index ? Colors.blue : Colors.grey),
+                      leading: Icon(
+                        Icons.account_circle,
+                        color: cuentaSeleccionada == index ? Colors.blue : Colors.grey,
+                      ),
                       title: Text(cuentas[index]),
                       trailing: cuentaSeleccionada == index
                           ? const Icon(Icons.check_circle, color: Colors.green)

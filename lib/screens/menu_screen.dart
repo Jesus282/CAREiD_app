@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:login/screens/BaseScreen.dart';
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({Key? key}) : super(key: key);
@@ -19,104 +20,30 @@ class _MenuScreenState extends State<MenuScreen> {
     });
   }
 
-  void _navigateTo(String screenName) {
-  String route = '';
+  void _onBottomNavTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
 
-  switch (screenName) {
-    case 'Editar Perfil de Usuario':
-      route = '/perfil';
-      break;
-    case 'Cambiar de Cuenta':
-      route = '/contacto';
-      break;
-    case 'Ver y Contactar con Familia':
-      route = '/familia';
-      break;
-    case 'Mis Documentos':
-      route = '/clinicas';
-      break;
-    case 'Mis Recordatorios':
-      route = '/alarma';
-      break;
-    case 'Ayuda y Asistencia':
-      route = '/ayuda';
-      break;
-    case 'Configuraciones Generales':
-      route = '/configuracion';
-      break;
-    default:
-      return;
+    switch (index) {
+      case 1:
+        Navigator.pushNamed(context, '/location');
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/chat');
+        break;
+      default:
+        Navigator.pushReplacementNamed(context, '/menu');
+        break;
+    }
   }
 
-  if (route.isNotEmpty) {
-    Navigator.pushNamed(context, route);
-  }
-}
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      endDrawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
-              child: Text(
-                'Menú CAREiD',
-                style: TextStyle(color: Colors.white, fontSize: 24),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Editar perfil de usuario'),
-              onTap: () => _navigateTo('Editar Perfil de Usuario'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.switch_account),
-              title: const Text('Cambiar de cuenta'),
-              onTap: () => _navigateTo('Cambiar de Cuenta'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.family_restroom),
-              title: const Text('Ver y contactar con familia'),
-              onTap: () => _navigateTo('Ver y Contactar con Familia'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.folder),
-              title: const Text('Mis documentos'),
-              onTap: () => _navigateTo('Mis Documentos'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.notifications_active),
-              title: const Text('Mis recordatorios'),
-              onTap: () => _navigateTo('Mis Recordatorios'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.help_outline),
-              title: const Text('Ayuda y asistencia'),
-              onTap: () => _navigateTo('Ayuda y Asistencia'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Configuraciones generales'),
-              onTap: () => _navigateTo('Configuraciones Generales'),
-            ),
-          ],
-        ),
-      ),
-      appBar: AppBar(
-        title: const Text('CAREiD'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              _scaffoldKey.currentState?.openEndDrawer();
-            },
-          ),
-        ],
-      ),
+    return BaseScreen(
+      scaffoldKey: _scaffoldKey,
+      currentIndex: _currentIndex,
+      onBottomNavTapped: _onBottomNavTapped,
       body: ListView.builder(
         padding: const EdgeInsets.all(16.0),
         itemCount: appointments.length,
@@ -126,7 +53,7 @@ class _MenuScreenState extends State<MenuScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16.0),
             ),
-            color: Colors.blue[50],
+            color: Colors.white.withOpacity(0.8),
             child: ListTile(
               leading: const CircleAvatar(
                 radius: 25,
@@ -144,7 +71,7 @@ class _MenuScreenState extends State<MenuScreen> {
                   IconButton(
                     icon: const Icon(Icons.edit, color: Colors.blue),
                     onPressed: () {
-                      // Acción de editar cita
+                      Navigator.pushReplacementNamed(context, '/perfilconsulta');
                     },
                   ),
                   IconButton(
@@ -160,47 +87,6 @@ class _MenuScreenState extends State<MenuScreen> {
             ),
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addAppointment,
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.add, size: 35),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Mapas',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
-          ),
-        ],
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-            });
-
-  // Agregamos la navegación
-          switch (index) {
-            case 1:
-            Navigator.pushNamed(context, '/location'); // Ruta para Mapas
-            break;
-            case 2:
-            Navigator.pushNamed(context, '/chat'); // Ruta para Mensajes
-            break;
-            default:
-      // No hacer nada si es Inicio
-            break;
-          }
-        },
-
       ),
     );
   }
