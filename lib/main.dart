@@ -22,6 +22,7 @@ import 'screens/profile_screen.dart';
 import 'screens/record_screen.dart'; 
 import 'screens/settings_screen.dart';
 import 'screens/help_screen.dart';
+import 'screens/location_screen.dart';
 
 // flutter run -d edge//
 void main() async {
@@ -68,7 +69,9 @@ class MyApp extends StatelessWidget {
   '/plan': (context) => PlanScreen(),
   '/error': (context) => FailureScreen(),
   '/ayuda':(context)=> HelpScreen(),
+  '/location':(context)=> LocationScreen(),
 },
+
 
       //home: const SplashScreen(),
       

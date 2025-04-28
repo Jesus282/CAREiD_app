@@ -196,7 +196,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 20),
               _isLoading
                   ? Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
+                  : 
+                  ElevatedButton(
+  style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.blue,
+    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 80),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+  ),
+  onPressed: () {
+    Navigator.pushReplacementNamed(context, '/plan');
+  },
+  child: const Text(
+    "Registrarse",
+    style: TextStyle(fontSize: 18, color: Colors.white),
+  ),
+),
+
+                  /*ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 80),
@@ -206,7 +224,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       onPressed: registrarUsuario,
                       child: const Text("Registrarse", style: TextStyle(fontSize: 18, color: Colors.white)),
-                    ),
+                    ),*/
               const SizedBox(height: 15),
               TextButton(
                 onPressed: () {
