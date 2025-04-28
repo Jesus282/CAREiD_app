@@ -71,7 +71,7 @@ class _ContactScreenState extends State<ContactScreen> {
     return BaseScreen(
       scaffoldKey: _scaffoldKey,
       currentIndex: _currentIndex,
-      onBottomNavTapped: _onBottomNavTapped,
+      
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

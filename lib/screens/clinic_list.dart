@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:login/screens/BaseScreen.dart';
 
 class ClinicListScreen extends StatefulWidget {
   const ClinicListScreen({Key? key}) : super(key: key);
@@ -8,6 +9,7 @@ class ClinicListScreen extends StatefulWidget {
 }
 
 class _ClinicListScreenState extends State<ClinicListScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchController = TextEditingController();
   
   List<Map<String, String>> documentosMedicos = [
@@ -47,6 +49,10 @@ class _ClinicListScreenState extends State<ClinicListScreen> {
     );
   }
 
+  void _onBottomNavTapped(int index) {
+    // Aquí puedes manejar la navegación
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -55,15 +61,11 @@ class _ClinicListScreenState extends State<ClinicListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Documentos Médicos'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+    return BaseScreen(
+      scaffoldKey: _scaffoldKey,
+      currentIndex: 0, // Cambia esto si necesitas un índice diferente
+     
+      title: 'Documentos Médicos',
       body: Column(
         children: [
           Padding(

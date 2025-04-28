@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:login/screens/BaseScreen.dart';
 
 class LocationScreen extends StatelessWidget {
-  const LocationScreen({Key? key}) : super(key: key);
+  LocationScreen({Key? key}) : super(key: key);
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<Map<String, String>> hospitals = const [
     {
@@ -22,16 +25,15 @@ class LocationScreen extends StatelessWidget {
     },
   ];
 
+
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hospitales Cercanos'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+    return BaseScreen(
+      scaffoldKey: _scaffoldKey, // <- agregado
+      currentIndex: 0,
+    
+      title: 'Hospitales Cercanos',
       body: ListView.builder(
         padding: const EdgeInsets.all(16.0),
         itemCount: hospitals.length,
@@ -74,18 +76,18 @@ class HospitalMapScreen extends StatelessWidget {
   final String name;
   final String address;
 
-  const HospitalMapScreen({Key? key, required this.name, required this.address}) : super(key: key);
+  HospitalMapScreen({Key? key, required this.name, required this.address}) : super(key: key);
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(name),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+    return BaseScreen(
+      scaffoldKey: _scaffoldKey, // <- agregado
+      currentIndex: 0,
+ 
+      title: name,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

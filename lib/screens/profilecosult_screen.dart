@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:login/screens/BaseScreen.dart';
 
 class ConsultaScreen extends StatefulWidget {
   final String? initialDoctor;
@@ -14,12 +14,16 @@ class ConsultaScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<ConsultaScreen> createState() => _EditAppointmentScreenState();
+  State<ConsultaScreen> createState() => _ConsultaScreenState();
 }
 
-class _EditAppointmentScreenState extends State<ConsultaScreen> {
+class _ConsultaScreenState extends State<ConsultaScreen> {
   final _doctorController = TextEditingController();
   final _purposeController = TextEditingController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  
+  int _currentIndex = 0;
+
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
@@ -32,6 +36,13 @@ class _EditAppointmentScreenState extends State<ConsultaScreen> {
       _selectedDate = widget.initialDateTime;
       _selectedTime = TimeOfDay.fromDateTime(widget.initialDateTime!);
     }
+  }
+
+  void _onBottomNavTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    // Aquí puedes hacer navegación si quieres
   }
 
   Future<void> _pickDate() async {
@@ -61,9 +72,12 @@ class _EditAppointmentScreenState extends State<ConsultaScreen> {
   }
 
   void _saveAppointment() {
-    if (_doctorController.text.isEmpty || _purposeController.text.isEmpty || _selectedDate == null || _selectedTime == null) {
+    if (_doctorController.text.isEmpty ||
+        _purposeController.text.isEmpty ||
+        _selectedDate == null ||
+        _selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor, completa todos los campos')),
+        const SnackBar(content: Text('Por favor, completa todos los campos')),
       );
       return;
     }
@@ -76,7 +90,6 @@ class _EditAppointmentScreenState extends State<ConsultaScreen> {
       _selectedTime!.minute,
     );
 
-    // Aquí podrías enviar los datos a donde necesites, o regresar a la pantalla anterior
     Navigator.pop(context, {
       'doctor': _doctorController.text,
       'purpose': _purposeController.text,
@@ -86,52 +99,56 @@ class _EditAppointmentScreenState extends State<ConsultaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Editar Cita'),
-      ),
+    return BaseScreen(
+      scaffoldKey: _scaffoldKey,
+      currentIndex: _currentIndex,
+      
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
             TextField(
               controller: _doctorController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Nombre del médico',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.person),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             TextField(
               controller: _purposeController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: '¿Para qué es la cita?',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.description),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ListTile(
-              leading: Icon(Icons.calendar_today),
-              title: Text(_selectedDate == null
+              leading: const Icon(Icons.calendar_today),
+              title: Text(
+                _selectedDate == null
                   ? 'Selecciona la fecha'
-                  : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'),
+                  : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+              ),
               onTap: _pickDate,
             ),
             ListTile(
-              leading: Icon(Icons.access_time),
-              title: Text(_selectedTime == null
+              leading: const Icon(Icons.access_time),
+              title: Text(
+                _selectedTime == null
                   ? 'Selecciona la hora'
-                  : _selectedTime!.format(context)),
+                  : _selectedTime!.format(context),
+              ),
               onTap: _pickTime,
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             ElevatedButton(
               onPressed: _saveAppointment,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
-                padding: EdgeInsets.symmetric(vertical: 15),
+                padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),

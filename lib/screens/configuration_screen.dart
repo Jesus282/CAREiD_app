@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:login/screens/BaseScreen.dart';
 class ConfigurationScreen extends StatefulWidget {
   const ConfigurationScreen({Key? key}) : super(key: key);
 
@@ -12,6 +12,8 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
   String _idiomaSeleccionado = 'Español';
 
   final List<String> _idiomasDisponibles = ['Español', 'Inglés', 'Francés', 'Alemán'];
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   void _cambiarTema(bool valor) {
     setState(() {
@@ -37,20 +39,20 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Sesión cerrada exitosamente')),
     );
-    // Aquí puedes agregar la lógica para cerrar sesión y navegar a la pantalla de login
+    // Aquí puedes agregar la navegación a login
+  }
+
+  void _onBottomNavTapped(int index) {
+    // Aquí manejas la navegación desde el BottomNavigationBar
+    print('Se tocó el botón de índice: $index');
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Configuraciones Generales'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+    return BaseScreen(
+      scaffoldKey: _scaffoldKey,
+  
+      currentIndex: 0, // Puedes cambiarlo si quieres que otro tab esté activo
       body: ListView(
         padding: const EdgeInsets.all(12),
         children: [
@@ -75,7 +77,10 @@ class _ConfigurationScreenState extends State<ConfigurationScreen> {
                     content: DropdownButton<String>(
                       value: _idiomaSeleccionado,
                       isExpanded: true,
-                      onChanged: _seleccionarIdioma,
+                      onChanged: (value) {
+                        _seleccionarIdioma(value);
+                        Navigator.of(context).pop(); // Cerramos el dialogo
+                      },
                       items: _idiomasDisponibles.map((idioma) {
                         return DropdownMenuItem(
                           value: idioma,

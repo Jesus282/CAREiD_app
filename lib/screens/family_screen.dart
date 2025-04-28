@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:login/screens/BaseScreen.dart';
 class FamilyScreen extends StatefulWidget {
   const FamilyScreen({Key? key}) : super(key: key);
 
@@ -9,6 +9,10 @@ class FamilyScreen extends StatefulWidget {
 
 class _FamilyScreenState extends State<FamilyScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  
+  int _currentIndex = 0;
+
   List<Map<String, String>> familiares = [
     {'nombre': 'Carlos Gómez', 'telefono': '555-1234', 'email': 'carlos@gmail.com'},
     {'nombre': 'Ana Torres', 'telefono': '555-5678', 'email': 'ana@hotmail.com'},
@@ -21,6 +25,13 @@ class _FamilyScreenState extends State<FamilyScreen> {
   void initState() {
     super.initState();
     familiaresFiltrados = familiares;
+  }
+
+  void _onBottomNavTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    // Aquí podrías hacer navegación si lo deseas
   }
 
   void _buscarFamiliares(String query) {
@@ -72,16 +83,10 @@ class _FamilyScreenState extends State<FamilyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Familiares'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
+    return BaseScreen(
+      scaffoldKey: _scaffoldKey,
+      currentIndex: _currentIndex,
+ 
       body: Column(
         children: [
           Padding(
@@ -144,8 +149,8 @@ class _FamilyScreenState extends State<FamilyScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _agregarFamiliar,
-        child: const Icon(Icons.person_add),
         backgroundColor: Colors.blue,
+        child: const Icon(Icons.person_add),
       ),
     );
   }

@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:login/screens/BaseScreen.dart';
 
-class profile_screen extends StatefulWidget {
-  const profile_screen({Key? key}) : super(key: key);
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({Key? key}) : super(key: key);
 
   @override
-  State<profile_screen> createState() => _profile_screenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _profile_screenState extends State<profile_screen> {
+class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _correoController = TextEditingController();
   final TextEditingController _telefonoController = TextEditingController();
   final TextEditingController _direccionController = TextEditingController();
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   File? _imagenPerfil;
 
@@ -29,6 +32,12 @@ class _profile_screenState extends State<profile_screen> {
     }
   }
 
+  void _guardarPerfil() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Perfil actualizado exitosamente')),
+    );
+  }
+
   @override
   void dispose() {
     _nombreController.dispose();
@@ -39,20 +48,13 @@ class _profile_screenState extends State<profile_screen> {
     super.dispose();
   }
 
-  void _guardarPerfil() {
-    // Aquí guardarías los datos en base de datos o API
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Perfil actualizado exitosamente')),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Editar Perfil'),
-        centerTitle: true,
-      ),
+    return BaseScreen(
+      title: 'Editar Perfil',
+      currentIndex: 2, // 👈🏼 AÑADIDO: Define el índice actual (depende de tu BottomNavigationBar)
+      scaffoldKey: _scaffoldKey,
+      
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

@@ -43,7 +43,6 @@ class _MenuScreenState extends State<MenuScreen> {
     return BaseScreen(
       scaffoldKey: _scaffoldKey,
       currentIndex: _currentIndex,
-      onBottomNavTapped: _onBottomNavTapped,
       body: ListView.builder(
         padding: const EdgeInsets.all(16.0),
         itemCount: appointments.length,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:login/screens/BaseScreen.dart';
 
 class HelpScreen extends StatefulWidget {
   const HelpScreen({Key? key}) : super(key: key);
@@ -9,6 +10,7 @@ class HelpScreen extends StatefulWidget {
 
 class _HelpScreenState extends State<HelpScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   List<Map<String, String>> temasAyuda = [
     {'titulo': 'Cómo usar la aplicación', 'descripcion': 'Manual paso a paso para nuevos usuarios.'},
@@ -39,7 +41,11 @@ class _HelpScreenState extends State<HelpScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Visualizando: $titulo')),
     );
-    // Más adelante aquí se podría navegar a una pantalla de detalle
+  }
+
+  void _onBottomNavTapped(int index) {
+    // Aquí puedes manejar la navegación según el índice
+    print('Se tocó el botón de índice: $index');
   }
 
   @override
@@ -50,15 +56,10 @@ class _HelpScreenState extends State<HelpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ayuda y Asistencia'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+    return BaseScreen(
+      currentIndex: 0, // Cambia esto si quieres otro tab activo
+      scaffoldKey: _scaffoldKey,
+ 
       body: Column(
         children: [
           Padding(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
+import 'package:login/screens/BaseScreen.dart';
 class AlarmScreen extends StatefulWidget {
   const AlarmScreen({Key? key}) : super(key: key);
 
@@ -9,6 +9,7 @@ class AlarmScreen extends StatefulWidget {
 }
 
 class _AlarmScreenState extends State<AlarmScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Map<String, dynamic>> alarmas = [];
 
   void _agregarAlarma() async {
@@ -74,17 +75,17 @@ class _AlarmScreenState extends State<AlarmScreen> {
     return DateFormat.jm().format(dt);
   }
 
+  void _onBottomNavTapped(int index) {
+    // Aquí agregas la lógica de navegación si es necesario
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Recordatorios'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+    return BaseScreen(
+      scaffoldKey: _scaffoldKey,
+      currentIndex: 0, // El índice que corresponda en tu BottomNavigationBar
+    
+      title: 'Mis Recordatorios', // <- Si BaseScreen acepta 'title'
       body: alarmas.isEmpty
           ? const Center(child: Text('No tienes alarmas configuradas'))
           : ListView.builder(

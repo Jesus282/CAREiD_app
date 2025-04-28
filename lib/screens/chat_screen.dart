@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'package:login/screens/BaseScreen.dart';
 class ChatScreen extends StatelessWidget {
-  const ChatScreen({Key? key}) : super(key: key);
+  ChatScreen({Key? key}) : super(key: key);
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<Map<String, String>> contacts = const [
     {'name': 'Dr. Juan Pérez', 'type': 'Especialista'},
@@ -11,16 +13,13 @@ class ChatScreen extends StatelessWidget {
     {'name': 'Hermano', 'type': 'Familiar'},
   ];
 
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chats'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+    return BaseScreen(
+      scaffoldKey: _scaffoldKey, // ¡obligatorio!
+      currentIndex: 0,
+      title: 'Chats',
       body: ListView.builder(
         padding: const EdgeInsets.all(16.0),
         itemCount: contacts.length,
@@ -68,27 +67,26 @@ class ChatConversationScreen extends StatelessWidget {
   final String name;
   final String type;
 
-  const ChatConversationScreen({Key? key, required this.name, required this.type}) : super(key: key);
+  ChatConversationScreen({Key? key, required this.name, required this.type}) : super(key: key);
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final TextEditingController _messageController = TextEditingController();
+
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _messageController = TextEditingController();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(name),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+    return BaseScreen(
+      scaffoldKey: _scaffoldKey,
+      currentIndex: 0,
+   
+      title: name,
       body: Column(
         children: [
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16.0),
               children: const [
-                // Aquí irían los mensajes intercambiados (mocked de momento)
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Bubble(message: '¡Hola! ¿Cómo puedo ayudarte hoy?'),
@@ -120,7 +118,7 @@ class ChatConversationScreen extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.send, color: Colors.blue),
                   onPressed: () {
-                    // Aquí iría la lógica de enviar el mensaje
+                    // Aquí puedes añadir lógica de envío
                     _messageController.clear();
                   },
                 ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+
 //import 'package:supabase_flutter/supabase_flutter.dart';//Conexion BD
 
 import 'screens/login_screen.dart';
@@ -63,7 +64,7 @@ class MyApp extends StatelessWidget {
   '/historial': (context) => HistoryScreen(),
   '/medicamentos': (context) => MedicListScreen(),
   '/perfilconsulta': (context) => ConsultaScreen(),
-  '/perfil': (context) => profile_screen(),
+  '/perfil': (context) => ProfileScreen(),
   '/registroclinico': (context) => RecordScreen(),
   '/ajustes': (context) => SettingsScreen(),
   '/plan': (context) => PlanScreen(),

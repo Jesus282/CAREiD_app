@@ -3,19 +3,35 @@ import 'package:flutter/material.dart';
 class BaseScreen extends StatelessWidget {
   final Widget body;
   final int currentIndex;
-  final Function(int) onBottomNavTapped;
   final GlobalKey<ScaffoldState> scaffoldKey;
+  final FloatingActionButton? floatingActionButton; 
+  final String? title;
 
   const BaseScreen({
     Key? key,
     required this.body,
     required this.currentIndex,
-    required this.onBottomNavTapped,
     required this.scaffoldKey,
+    this.floatingActionButton,
+    this.title,
   }) : super(key: key);
 
   void _navigateTo(BuildContext context, String routeName) {
-    Navigator.pushNamed(context, routeName);
+    Navigator.pushReplacementNamed(context, routeName);
+  }
+
+  void _onBottomNavTapped(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        _navigateTo(context, '/menu');       // Página principal
+        break;
+      case 1:
+        _navigateTo(context, '/location');     // Página del mapa
+        break;
+      case 2:
+        _navigateTo(context, '/chat');    // Página de chats
+        break;
+    }
   }
 
   Widget _buildDrawer(BuildContext context) {
@@ -77,7 +93,7 @@ class BaseScreen extends StatelessWidget {
       key: scaffoldKey,
       endDrawer: _buildDrawer(context),
       appBar: AppBar(
-        title: const Text('CAREiD'),
+        title: Text(title ?? 'CAREiD'),
         centerTitle: true,
         backgroundColor: Colors.blueAccent,
         actions: [
@@ -93,18 +109,19 @@ class BaseScreen extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            'assets/logo.png', // <-- ruta a tu logo
+            'assets/logo.png',
             fit: BoxFit.cover,
           ),
           body,
         ],
       ),
+      floatingActionButton: floatingActionButton,
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.blue[100],
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.black54,
         currentIndex: currentIndex,
-        onTap: onBottomNavTapped,
+        onTap: (index) => _onBottomNavTapped(context, index),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
