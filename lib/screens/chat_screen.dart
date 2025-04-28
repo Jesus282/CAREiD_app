@@ -1,8 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:login/screens/BaseScreen.dart';
-class ChatScreen extends StatelessWidget {
-  ChatScreen({Key? key}) : super(key: key);
 
+class ChatListScreen extends StatelessWidget {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<Map<String, String>> contacts = const [
@@ -13,11 +13,10 @@ class ChatScreen extends StatelessWidget {
     {'name': 'Hermano', 'type': 'Familiar'},
   ];
 
-
   @override
   Widget build(BuildContext context) {
     return BaseScreen(
-      scaffoldKey: _scaffoldKey, // ¡obligatorio!
+      scaffoldKey: _scaffoldKey,
       currentIndex: 0,
       title: 'Chats',
       body: ListView.builder(
@@ -48,7 +47,7 @@ class ChatScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ChatConversationScreen(
+                    builder: (context) => ChatScreen(
                       name: contact['name']!,
                       type: contact['type']!,
                     ),
@@ -63,39 +62,64 @@ class ChatScreen extends StatelessWidget {
   }
 }
 
-class ChatConversationScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
   final String name;
   final String type;
 
-  ChatConversationScreen({Key? key, required this.name, required this.type}) : super(key: key);
+  const ChatScreen({Key? key, required this.name, required this.type}) : super(key: key);
 
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
   final TextEditingController _messageController = TextEditingController();
 
+  void _sendMessage() {
+    if (_messageController.text.trim().isNotEmpty) {
+      FirebaseFirestore.instance.collection('chats').add({
+        'sender': 'Usuario', // Aquí deberías usar el ID real del usuario si lo tienes
+        'receiver': widget.name,
+        'message': _messageController.text.trim(),
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      _messageController.clear();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return BaseScreen(
       scaffoldKey: _scaffoldKey,
       currentIndex: 0,
-   
-      title: name,
+      title: widget.name,
       body: Column(
         children: [
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16.0),
-              children: const [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Bubble(message: '¡Hola! ¿Cómo puedo ayudarte hoy?'),
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Bubble(message: 'Tengo algunas dudas sobre mi tratamiento.'),
-                ),
-              ],
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('chats')
+                  .orderBy('timestamp', descending: false)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                var messages = snapshot.data!.docs;
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    var data = messages[index];
+                    bool isMe = data['sender'] == 'Usuario'; // Cambiar cuando uses auth real
+                    return Bubble(
+                      message: data['message'],
+                      isMe: isMe,
+                    );
+                  },
+                );
+              },
             ),
           ),
           const Divider(height: 1),
@@ -117,10 +141,7 @@ class ChatConversationScreen extends StatelessWidget {
                 const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.send, color: Colors.blue),
-                  onPressed: () {
-                    // Aquí puedes añadir lógica de envío
-                    _messageController.clear();
-                  },
+                  onPressed: _sendMessage,
                 ),
               ],
             ),
@@ -133,19 +154,28 @@ class ChatConversationScreen extends StatelessWidget {
 
 class Bubble extends StatelessWidget {
   final String message;
+  final bool isMe;
 
-  const Bubble({Key? key, required this.message}) : super(key: key);
+  const Bubble({Key? key, required this.message, required this.isMe}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(16),
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isMe ? Colors.blueAccent : Colors.grey[300],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          message,
+          style: TextStyle(
+            color: isMe ? Colors.white : Colors.black,
+          ),
+        ),
       ),
-      child: Text(message),
     );
   }
 }

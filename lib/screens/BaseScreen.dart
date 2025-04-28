@@ -38,12 +38,13 @@ class BaseScreen extends StatelessWidget {
     return Drawer(
       backgroundColor: Colors.lightBlue[50],
       child: ListView(
+        
         padding: EdgeInsets.zero,
         children: [
           const DrawerHeader(
-            decoration: BoxDecoration(color: Colors.blueAccent),
+            decoration: BoxDecoration(color: Color.fromARGB(255, 129, 221, 224)),
             child: Text(
-              'Menú CAREiD',
+              'MENU CAREiD',
               style: TextStyle(color: Colors.white, fontSize: 24),
             ),
           ),
@@ -95,7 +96,7 @@ class BaseScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(title ?? 'CAREiD'),
         centerTitle: true,
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: const Color.fromARGB(255, 184, 210, 255),
         actions: [
           IconButton(
             icon: const Icon(Icons.menu),
@@ -108,9 +109,12 @@ class BaseScreen extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            'assets/logo.png',
+          Opacity(
+            opacity: 0.5, 
+            child: Image.asset(
+            'fondo.jpg',
             fit: BoxFit.cover,
+            ),
           ),
           body,
         ],
