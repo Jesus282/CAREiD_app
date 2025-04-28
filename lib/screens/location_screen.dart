@@ -1,112 +1,138 @@
 import 'package:flutter/material.dart';
-import 'package:login/screens/BaseScreen.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:mapbox_search/mapbox_search.dart';
 
-class LocationScreen extends StatelessWidget {
-  LocationScreen({Key? key}) : super(key: key);
-
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  final List<Map<String, String>> hospitals = const [
-    {
-      'name': 'Hospital General Central',
-      'address': 'Av. Siempre Viva 123, Ciudad Central'
-    },
-    {
-      'name': 'Clínica Médica Familiar',
-      'address': 'Calle Salud 456, Zona Norte'
-    },
-    {
-      'name': 'Centro de Especialidades Médicas',
-      'address': 'Boulevard Médico 789, Distrito Sur'
-    },
-    {
-      'name': 'Hospital de Urgencias 24h',
-      'address': 'Av. Rápida 101, Ciudad Nueva'
-    },
-  ];
-
-
+class MedicalMapScreen extends StatefulWidget {
+  const MedicalMapScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BaseScreen(
-      scaffoldKey: _scaffoldKey, // <- agregado
-      currentIndex: 0,
-    
-      title: 'Hospitales Cercanos',
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: hospitals.length,
-        itemBuilder: (context, index) {
-          final hospital = hospitals[index];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 16.0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16.0),
-              leading: const Icon(Icons.local_hospital, color: Colors.redAccent, size: 40),
-              title: Text(
-                hospital['name']!,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(hospital['address']!),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HospitalMapScreen(
-                      name: hospital['name']!,
-                      address: hospital['address']!,
-                    ),
-                  ),
-                );
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
+  State<MedicalMapScreen> createState() => _MedicalMapScreenState();
 }
 
-class HospitalMapScreen extends StatelessWidget {
-  final String name;
-  final String address;
+class _MedicalMapScreenState extends State<MedicalMapScreen> {
+  final MapController _mapController = MapController();
+  List<Marker> _medicalMarkers = [];
+  LatLng? _userLocation;
+  bool _isLoading = true;
 
-  HospitalMapScreen({Key? key, required this.name, required this.address}) : super(key: key);
+  @override
+  void initState() {
+    super.initState();
+    _getUserLocation();
+  }
 
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  Future<void> _getUserLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
 
-  
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return;
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+    setState(() {
+      _userLocation = LatLng(position.latitude, position.longitude);
+    });
+
+    _getNearbyMedicalFacilities();
+  }
+
+  Future<void> _getNearbyMedicalFacilities() async {
+    final placesService = GeoCoding(
+      apiKey: 'pk.eyJ1IjoiamVzdXMyNiIsImEiOiJjbWEwd2x4ZmowMThoMmpweXU5YTVudnUyIn0.r9zqvJaVg_p1r1g7jQthcg',
+      country: 'mx',
+      limit: 20,
+    );
+
+    try {
+      var results = await placesService.getPlaces(
+        'hospital',
+        proximity: Proximity.LatLong(
+          lat: _userLocation!.latitude,
+          long: _userLocation!.longitude,
+        ),
+      );
+
+      setState(() {
+        _medicalMarkers = (results.success ?? []).map((place) {
+          return Marker(
+            width: 40.0,
+            height: 40.0,
+            point: LatLng(
+              place.geometry?.coordinates[1] ?? 0, // latitude
+              place.geometry?.coordinates[0] ?? 0, // longitude
+            ),
+            child: const Icon(
+              Icons.local_hospital,
+              color: Colors.red,
+              size: 40,
+            ),
+          );
+        }).toList();
+        _isLoading = false;
+      });
+
+      if (_userLocation != null) {
+        _mapController.move(_userLocation!, 13);
+      }
+    } catch (e) {
+      print('Error al obtener centros médicos: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BaseScreen(
-      scaffoldKey: _scaffoldKey, // <- agregado
-      currentIndex: 0,
- 
-      title: name,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.map, size: 100, color: Colors.blueGrey),
-            const SizedBox(height: 20),
-            Text(
-              'Ubicación: $address',
-              style: const TextStyle(fontSize: 18),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 40),
-            const Text(
-              'Aquí iría un mapa interactivo 🌎 (por integrar)',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Centros Médicos Cercanos'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.my_location),
+            onPressed: _getUserLocation,
+          ),
+        ],
       ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: _userLocation ?? const LatLng(19.4326, -99.1332),
+                initialZoom: 13,
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate:
+                      'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=TU_API_KEY',
+                  additionalOptions: {
+                    'accessToken': 'TU_API_KEY',
+                    'id': 'mapbox.streets',
+                  },
+                  userAgentPackageName: 'com.example.careid',
+                ),
+                MarkerLayer(
+                  markers: [
+                    if (_userLocation != null)
+                      Marker(
+                        width: 50.0,
+                        height: 50.0,
+                        point: _userLocation!,
+                        child: const Icon(
+                          Icons.person_pin_circle,
+                          color: Colors.blue,
+                          size: 50,
+                        ),
+                      ),
+                    ..._medicalMarkers,
+                  ],
+                ),
+              ],
+            ),
     );
   }
 }

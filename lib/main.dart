@@ -76,7 +76,7 @@ class MyApp extends StatelessWidget {
   '/plan': (context) => PlanScreen(),
   '/error': (context) => FailureScreen(),
   '/ayuda':(context)=> HelpScreen(),
-  '/location':(context)=> LocationScreen(),
+  '/location':(context)=> MedicalMapScreen(),
 },
 
 
