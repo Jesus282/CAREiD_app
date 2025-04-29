@@ -13,42 +13,46 @@ class MedicalMapScreen extends StatefulWidget {
 }
 
 class _MedicalMapScreenState extends State<MedicalMapScreen> {
-  final MapController _mapController = MapController();
+  late final MapController _mapController;
   List<Marker> _medicalMarkers = [];
   LatLng? _userLocation;
   bool _isLoading = true;
+  bool _isMapReady = false;
 
   @override
   void initState() {
     super.initState();
-    _getUserLocation();
+    _mapController = MapController();
+    _initLocation();
+  }
+
+  Future<void> _initLocation() async {
+    await _getUserLocation();
+    if (_userLocation != null) {
+      _getNearbyMedicalFacilities();
+    }
   }
 
   Future<void> _getUserLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      bool enabled = await Geolocator.openLocationSettings();
-      if (!enabled) {
-        setState(() => _isLoading = false);
-        return;
-      }
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        setState(() => _isLoading = false);
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      setState(() => _isLoading = false);
-      return;
-    }
-
     try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        bool enabled = await Geolocator.openLocationSettings();
+        if (!enabled) throw Exception('Servicios de ubicación no disponibles');
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Permisos de ubicación denegados');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Permisos de ubicación permanentemente denegados');
+      }
+
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best,
       );
@@ -57,20 +61,24 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
         _userLocation = LatLng(position.latitude, position.longitude);
       });
 
-      await _getNearbyMedicalFacilities();
+      if (_isMapReady) {
+        _moveToLocation(_userLocation!, zoom: 13);
+      }
     } catch (e) {
       print('Error obteniendo ubicación: $e');
-      setState(() => _isLoading = false);
-      _showErrorSnackbar('Error al obtener ubicación: ${e.toString()}');
+      _showErrorSnackbar('Error de ubicación: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   Future<void> _getNearbyMedicalFacilities() async {
-    if (_userLocation == null) {
-      setState(() => _isLoading = false);
-      return;
-    }
+    if (_userLocation == null) return;
 
+    setState(() => _isLoading = true);
+    
     try {
       final apiKey = 'pk.eyJ1IjoiamVzdXMyNiIsImEiOiJjbWEwd2x4ZmowMThoMmpweXU5YTVudnUyIn0.r9zqvJaVg_p1r1g7jQthcg';
       final proximity = '${_userLocation!.longitude},${_userLocation!.latitude}';
@@ -110,36 +118,70 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
               ),
             );
           }).toList();
-          
-          _isLoading = false;
-          
-          // Ajustar el mapa para mostrar todos los marcadores
-          if (_medicalMarkers.isNotEmpty && _userLocation != null) {
-            final bounds = LatLngBounds.fromPoints(
-              [_userLocation!, ..._medicalMarkers.map((m) => m.point)]
-            );
-            final center = bounds.center;
-            final zoom = 13.0; // Adjust zoom level as needed
-            _mapController.move(center, zoom);
-          }
         });
+
+        if (_medicalMarkers.isNotEmpty && _userLocation != null && _isMapReady) {
+          _adjustMapToMarkers();
+        }
       } else {
         throw Exception('Error HTTP ${response.statusCode}: ${response.body}');
       }
     } catch (e) {
       print('Error en Category Search: $e');
-      setState(() => _isLoading = false);
       _showErrorSnackbar('Error al buscar hospitales: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  void _showErrorSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 3),
-      ),
+  void _moveToLocation(LatLng location, {double zoom = 13}) {
+    if (_isMapReady) {
+      _mapController.move(location, zoom);
+    }
+  }
+
+  void _adjustMapToMarkers() {
+    final bounds = LatLngBounds.fromPoints(
+      [_userLocation!, ..._medicalMarkers.map((m) => m.point)]
     );
+    final center = bounds.center;
+    final zoom = _calculateZoomLevel(bounds);
+    _moveToLocation(center, zoom: zoom);
+  }
+
+  double _calculateZoomLevel(LatLngBounds bounds) {
+    // Cálculo simplificado del nivel de zoom
+    // Puedes ajustar esta lógica según tus necesidades
+    const double defaultZoom = 13.0;
+    const double minZoom = 10.0;
+    const double maxZoom = 16.0;
+    
+    final distance = const Distance().distance(
+      bounds.northWest,
+      bounds.southEast,
+    );
+    
+    // Ajuste empírico basado en la distancia
+    if (distance > 10000) return minZoom;
+    if (distance > 5000) return 11.0;
+    if (distance > 2000) return 12.0;
+    if (distance > 1000) return 13.0;
+    if (distance > 500) return 14.0;
+    if (distance > 200) return 15.0;
+    return maxZoom;
+  }
+
+  void _showErrorSnackbar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override
@@ -151,16 +193,17 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
           IconButton(
             icon: const Icon(Icons.my_location),
             onPressed: () {
-              setState(() => _isLoading = true);
-              _getUserLocation();
+              if (_userLocation != null) {
+                _moveToLocation(_userLocation!);
+              } else {
+                setState(() => _isLoading = true);
+                _getUserLocation();
+              }
             },
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
-              setState(() => _isLoading = true);
-              _getNearbyMedicalFacilities();
-            },
+            onPressed: _getNearbyMedicalFacilities,
           ),
         ],
       ),
@@ -173,6 +216,12 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
                   options: MapOptions(
                     initialCenter: _userLocation ?? const LatLng(19.4326, -99.1332),
                     initialZoom: 13,
+                    onMapReady: () {
+                      setState(() => _isMapReady = true);
+                      if (_userLocation != null) {
+                        _moveToLocation(_userLocation!);
+                      }
+                    },
                   ),
                   children: [
                     TileLayer(
@@ -210,5 +259,11 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
               ],
             ),
     );
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
   }
 }
