@@ -57,18 +57,13 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
   }
 
   Future<void> _getNearbyMedicalFacilities() async {
-    if (_userLocation == null) {
-      setState(() => _isLoading = false);
-      return;
-    }
-
     try {
-      final placesService = PlacesSearch(
+      final service = MapBoxSearch(
         apiKey: 'pk.eyJ1IjoiamVzdXMyNiIsImEiOiJjbWEwd2x4ZmowMThoMmpweXU5YTVudnUyIn0.r9zqvJaVg_p1r1g7jQthcg',
       );
 
-      final response = await placesService.getPlaces(
-        'hospital',
+      final results = await service.placesSearch(
+        query: 'hospital',
         proximity: Location(
           lat: _userLocation!.latitude,
           lng: _userLocation!.longitude,
@@ -78,29 +73,18 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
       );
 
       setState(() {
-        _medicalMarkers = response.features?.map((place) {
+        _medicalMarkers = results.features.map((feature) {
           return Marker(
             point: LatLng(
-              place.center?[1] ?? 0, // latitude
-              place.center?[0] ?? 0, // longitude
+              feature.geometry?.coordinates.latitude ?? 0,
+              feature.geometry?.coordinates.longitude ?? 0,
             ),
-            child: const Icon(
-              Icons.local_hospital,
-              color: Colors.red,
-              size: 40,
-            ),
+            child: const Icon(Icons.local_hospital, color: Colors.red, size: 40),
           );
-        }).toList() ?? [];
-        
-        _isLoading = false;
+        }).toList();
       });
-
-      if (_userLocation != null) {
-        _mapController.move(_userLocation!, 13);
-      }
     } catch (e) {
-      print('Error al obtener centros médicos: $e');
-      setState(() => _isLoading = false);
+      print('Error: $e');
     }
   }
 
