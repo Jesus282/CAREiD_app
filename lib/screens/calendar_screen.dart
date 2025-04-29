@@ -1,1198 +1,142 @@
 import 'package:flutter/material.dart';
-class CalendarScreen extends StatelessWidget {
+import 'package:table_calendar/table_calendar.dart';
+import 'package:login/Actions/utils.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
+class TableEvents extends StatefulWidget {
+  const TableEvents({super.key});
+
+  @override
+  State<TableEvents> createState() => _TableEventsState();
+}
+
+class _TableEventsState extends State<TableEvents> {
+  late final ValueNotifier<List<Event>> _selectedEvents;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  RangeSelectionMode _rangeSelectionMode = RangeSelectionMode.toggledOff;
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+  DateTime? _rangeStart;
+  DateTime? _rangeEnd;
+
+  @override
+  void initState() {
+    super.initState();
+    initializeDateFormatting();
+    _selectedDay = _focusedDay;
+    _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
+  }
+
+  @override
+  void dispose() {
+    _selectedEvents.dispose();
+    super.dispose();
+  }
+
+  List<Event> _getEventsForDay(DateTime day) {
+    return kEvents[day] ?? [];
+  }
+
+  List<Event> _getEventsForRange(DateTime start, DateTime end) {
+    final days = daysInRange(start, end);
+    return [for (final d in days) ..._getEventsForDay(d)];
+  }
+
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    if (!isSameDay(_selectedDay, selectedDay)) {
+      setState(() {
+        _selectedDay = selectedDay;
+        _focusedDay = focusedDay;
+        _rangeStart = null;
+        _rangeEnd = null;
+        _rangeSelectionMode = RangeSelectionMode.toggledOff;
+      });
+      _selectedEvents.value = _getEventsForDay(selectedDay);
+    }
+  }
+
+  void _onRangeSelected(DateTime? start, DateTime? end, DateTime focusedDay) {
+    setState(() {
+      _selectedDay = null;
+      _focusedDay = focusedDay;
+      _rangeStart = start;
+      _rangeEnd = end;
+      _rangeSelectionMode = RangeSelectionMode.toggledOn;
+    });
+
+    if (start != null && end != null) {
+      _selectedEvents.value = _getEventsForRange(start, end);
+    } else if (start != null) {
+      _selectedEvents.value = _getEventsForDay(start);
+    } else if (end != null) {
+      _selectedEvents.value = _getEventsForDay(end);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 375,
-          height: 812,
-          clipBehavior: Clip.antiAlias,
-          decoration: ShapeDecoration(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(
-              side: BorderSide(
-                width: 2,
-                color: const Color(0xFF0092EC),
-              ),
-              borderRadius: BorderRadius.circular(40),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Calendario'),
+      ),
+      body: Column(
+        children: [
+          TableCalendar<Event>(
+            firstDay: kFirstDay,
+            lastDay: kLastDay,
+            focusedDay: _focusedDay,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            rangeStartDay: _rangeStart,
+            rangeEndDay: _rangeEnd,
+            calendarFormat: _calendarFormat,
+            rangeSelectionMode: _rangeSelectionMode,
+            eventLoader: _getEventsForDay,
+            startingDayOfWeek: StartingDayOfWeek.monday,
+            calendarStyle: const CalendarStyle(
+              outsideDaysVisible: false,
             ),
-            shadows: [
-              BoxShadow(
-                color: Color(0xFF0093ED),
-                blurRadius: 0,
-                offset: Offset(0, 8),
-                spreadRadius: 0,
-              )
-            ],
+            onDaySelected: _onDaySelected,
+            onRangeSelected: _onRangeSelected,
+            onFormatChanged: (format) {
+              if (_calendarFormat != format) {
+                setState(() {
+                  _calendarFormat = format;
+                });
+              }
+            },
+            onPageChanged: (focusedDay) {
+              _focusedDay = focusedDay;
+            },
           ),
-          child: Stack(
-            children: [
-              Positioned(
-                left: 0,
-                top: 0,
-                child: Container(
-                  width: 375,
-                  padding: const EdgeInsets.only(
-                    top: 60,
-                    left: 24,
-                    right: 24,
-                    bottom: 24,
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(color: Colors.white),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 16,
-                    children: [
-                      Container(
-                        width: 120,
-                        height: 18,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: 120,
-                                height: 18,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFF0092EC),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+          const SizedBox(height: 8.0),
+          Expanded(
+            child: ValueListenableBuilder<List<Event>>(
+              valueListenable: _selectedEvents,
+              builder: (context, value, _) {
+                return ListView.builder(
+                  itemCount: value.length,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 4.0,
                       ),
-                      Container(
-                        width: 242,
-                        height: 18,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: 242,
-                                height: 18,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFF7DD8FF),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                      decoration: BoxDecoration(
+                        border: Border.all(),
+                        borderRadius: BorderRadius.circular(12.0),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 24,
-                top: 496,
-                child: Container(
-                  width: 327,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFFD6F5FF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 12,
-                    children: [
-                      Container(
-                        width: 279,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 12,
-                          children: [
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 8,
-                              children: [
-                                Container(
-                                  width: 190,
-                                  height: 12,
-                                  child: Stack(
-                                    children: [
-                                      Positioned(
-                                        left: 0,
-                                        top: 0,
-                                        child: Container(
-                                          width: 190,
-                                          height: 12,
-                                          decoration: ShapeDecoration(
-                                            color: const Color(0xFF0092EC),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  width: 122,
-                                  height: 12,
-                                  child: Stack(
-                                    children: [
-                                      Positioned(
-                                        left: 0,
-                                        top: 0,
-                                        child: Container(
-                                          width: 122,
-                                          height: 12,
-                                          decoration: ShapeDecoration(
-                                            color: const Color(0xFF7DD8FF),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Container(
-                              width: 24,
-                              height: 24,
-                              clipBehavior: Clip.antiAlias,
-                              decoration: BoxDecoration(),
-                              child: Stack(),
-                            ),
-                          ],
-                        ),
+                      child: ListTile(
+                        onTap: () => print('${value[index]}'),
+                        title: Text('${value[index]}'),
                       ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 8,
-                        children: [
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: ShapeDecoration(
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(36),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              spacing: 10,
-                              children: [
-                                Container(
-                                  width: 24,
-                                  height: 24,
-                                  clipBehavior: Clip.antiAlias,
-                                  decoration: BoxDecoration(),
-                                  child: Stack(),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: ShapeDecoration(
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(36),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              spacing: 10,
-                              children: [
-                                Container(
-                                  width: 24,
-                                  height: 24,
-                                  clipBehavior: Clip.antiAlias,
-                                  decoration: BoxDecoration(),
-                                  child: Stack(),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: ShapeDecoration(
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(36),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              spacing: 10,
-                              children: [
-                                Container(
-                                  width: 24,
-                                  height: 24,
-                                  clipBehavior: Clip.antiAlias,
-                                  decoration: BoxDecoration(),
-                                  child: Stack(),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 24,
-                top: 628,
-                child: Container(
-                  width: 327,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFFD6F5FF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 12,
-                    children: [
-                      Container(
-                        width: 279,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 12,
-                          children: [
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 8,
-                              children: [
-                                Container(
-                                  width: 190,
-                                  height: 12,
-                                  child: Stack(
-                                    children: [
-                                      Positioned(
-                                        left: 0,
-                                        top: 0,
-                                        child: Container(
-                                          width: 190,
-                                          height: 12,
-                                          decoration: ShapeDecoration(
-                                            color: const Color(0xFF0092EC),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  width: 122,
-                                  height: 12,
-                                  child: Stack(
-                                    children: [
-                                      Positioned(
-                                        left: 0,
-                                        top: 0,
-                                        child: Container(
-                                          width: 122,
-                                          height: 12,
-                                          decoration: ShapeDecoration(
-                                            color: const Color(0xFF7DD8FF),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Container(
-                              width: 24,
-                              height: 24,
-                              clipBehavior: Clip.antiAlias,
-                              decoration: BoxDecoration(),
-                              child: Stack(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 8,
-                        children: [
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: ShapeDecoration(
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(36),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              spacing: 10,
-                              children: [
-                                Container(
-                                  width: 24,
-                                  height: 24,
-                                  clipBehavior: Clip.antiAlias,
-                                  decoration: BoxDecoration(),
-                                  child: Stack(),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: ShapeDecoration(
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(36),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              spacing: 10,
-                              children: [
-                                Container(
-                                  width: 24,
-                                  height: 24,
-                                  clipBehavior: Clip.antiAlias,
-                                  decoration: BoxDecoration(),
-                                  child: Stack(),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: ShapeDecoration(
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(36),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              spacing: 10,
-                              children: [
-                                Container(
-                                  width: 24,
-                                  height: 24,
-                                  clipBehavior: Clip.antiAlias,
-                                  decoration: BoxDecoration(),
-                                  child: Stack(),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top: 155,
-                child: Container(
-                  width: 375,
-                  height: 325,
-                  clipBehavior: Clip.antiAlias,
-                  decoration: ShapeDecoration(
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                  ),
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        left: 313,
-                        top: 72,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 313,
-                        top: 120,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 313,
-                        top: 216,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 313,
-                        top: 168,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 313,
-                        top: 264,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFFD6F5FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFFD6F5FF),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 265,
-                        top: 72,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 265,
-                        top: 120,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 265,
-                        top: 216,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 265,
-                        top: 168,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 265,
-                        top: 264,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFFD6F5FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFFD6F5FF),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 217,
-                        top: 72,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 217,
-                        top: 120,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 217,
-                        top: 216,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 217,
-                        top: 168,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 217,
-                        top: 264,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFFD6F5FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFFD6F5FF),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 169,
-                        top: 72,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 169,
-                        top: 120,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 169,
-                        top: 216,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 169,
-                        top: 168,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF0092EC),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 169,
-                        top: 264,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 121,
-                        top: 72,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFFD6F5FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFFD6F5FF),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 121,
-                        top: 120,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 121,
-                        top: 216,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 121,
-                        top: 168,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 121,
-                        top: 264,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 73,
-                        top: 72,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFFD6F5FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFFD6F5FF),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 73,
-                        top: 120,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 73,
-                        top: 216,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 73,
-                        top: 168,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 73,
-                        top: 264,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 25,
-                        top: 72,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFFD6F5FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFFD6F5FF),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 25,
-                        top: 120,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 25,
-                        top: 216,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 25,
-                        top: 168,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 25,
-                        top: 264,
-                        child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF7DD8FF),
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                width: 2,
-                                color: const Color(0xFF0092EC),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 25,
-                        top: 24,
-                        child: Container(
-                          width: 325,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            spacing: 24,
-                            children: [
-                              Container(
-                                width: 24,
-                                height: 24,
-                                clipBehavior: Clip.antiAlias,
-                                decoration: BoxDecoration(),
-                                child: Stack(),
-                              ),
-                              Container(
-                                width: 120,
-                                height: 18,
-                                child: Stack(
-                                  children: [
-                                    Positioned(
-                                      left: 0,
-                                      top: 0,
-                                      child: Container(
-                                        width: 120,
-                                        height: 18,
-                                        decoration: ShapeDecoration(
-                                          color: const Color(0xFFD6F5FF),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: 24,
-                                height: 24,
-                                clipBehavior: Clip.antiAlias,
-                                decoration: BoxDecoration(),
-                                child: Stack(),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 292,
-                top: 50,
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFFD6F5FF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        clipBehavior: Clip.antiAlias,
-                        decoration: BoxDecoration(),
-                        child: Stack(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 279,
-                top: 716,
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  padding: const EdgeInsets.all(16),
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFF0092EC),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(32),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 10,
-                    children: [
-                      Container(
-                        width: 28,
-                        height: 28,
-                        clipBehavior: Clip.antiAlias,
-                        decoration: BoxDecoration(),
-                        child: Stack(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+                    );
+                  },
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
