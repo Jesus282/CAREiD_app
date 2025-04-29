@@ -22,6 +22,7 @@ import 'screens/profile_screen.dart';
 import 'screens/record_screen.dart'; 
 import 'screens/settings_screen.dart';
 import 'screens/help_screen.dart';
+import 'screens/location_screen.dart';
 
 void main() async {
   // Inicialización de Firebase (comentado temporalmente)
@@ -56,6 +57,7 @@ class MyApp extends StatelessWidget {
         '/chat': (context) => ChatListScreen(),
         '/alarma': (context) => AlarmScreen(),
         '/clinicas': (context) => ClinicListScreen(),
+        '/location': (context) => MedicalMapScreen(),
         '/contacto': (context) => ContactScreen(),
         '/historial': (context) => HistoryScreen(),
         '/medicamentos': (context) => MedicListScreen(),
