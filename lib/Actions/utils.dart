@@ -1,51 +1,110 @@
 import 'dart:collection';
-
+import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
 
-/// Example event class.
-class Event {
-  final String title;
+class CalendarScreen extends StatefulWidget {
+  final List<Appointment> initialAppointments;
 
-  const Event(this.title);
+  const CalendarScreen({Key? key, required this.initialAppointments}) : super(key: key);
 
   @override
-  String toString() => title;
+  _CalendarScreenState createState() => _CalendarScreenState();
 }
 
-/// Example events.
-///
-/// Using a [LinkedHashMap] is highly recommended if you decide to use a map.
-final kEvents = LinkedHashMap<DateTime, List<Event>>(
-  equals: isSameDay,
-  hashCode: getHashCode,
-)..addAll(_kEventSource);
+class _CalendarScreenState extends State<CalendarScreen> {
+  late final ValueNotifier<List<Appointment>> _selectedAppointments;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
 
-final _kEventSource = {
-  for (var item in List.generate(50, (index) => index))
-    DateTime.utc(kFirstDay.year, kFirstDay.month, item * 5): List.generate(
-      item % 4 + 1,
-      (index) => Event('Event $item | ${index + 1}'),
-    ),
-}..addAll({
-    kToday: [
-      const Event("Today's Event 1"),
-      const Event("Today's Event 2"),
-    ],
-  });
-
-int getHashCode(DateTime key) {
-  return key.day * 1000000 + key.month * 10000 + key.year;
-}
-
-/// Returns a list of [DateTime] objects from [first] to [last], inclusive.
-List<DateTime> daysInRange(DateTime first, DateTime last) {
-  final dayCount = last.difference(first).inDays + 1;
-  return List.generate(
-    dayCount,
-    (index) => DateTime.utc(first.year, first.month, first.day + index),
+  final LinkedHashMap<DateTime, List<Appointment>> _appointmentsMap = LinkedHashMap(
+    equals: isSameDay,
+    hashCode: (DateTime key) => key.day * 1000000 + key.month * 10000 + key.year,
   );
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDay = _focusedDay;
+    
+    // Inicializar con las citas existentes
+    for (var appointment in widget.initialAppointments) {
+      final day = DateTime(appointment.date.year, appointment.date.month, appointment.date.day);
+      _appointmentsMap[day] = [..._appointmentsMap[day] ?? [], appointment];
+    }
+    
+    _selectedAppointments = ValueNotifier(_getAppointmentsForDay(_selectedDay!));
+  }
+
+  List<Appointment> _getAppointmentsForDay(DateTime day) {
+    return _appointmentsMap[day] ?? [];
+  }
+
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    if (!isSameDay(_selectedDay, selectedDay)) {
+      setState(() {
+        _selectedDay = selectedDay;
+        _focusedDay = focusedDay;
+      });
+      _selectedAppointments.value = _getAppointmentsForDay(selectedDay);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Calendario de Citas'),
+      ),
+      body: Column(
+        children: [
+          TableCalendar<Appointment>(
+            firstDay: DateTime.now().subtract(const Duration(days: 365)),
+            lastDay: DateTime.now().add(const Duration(days: 365)),
+            focusedDay: _focusedDay,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            calendarFormat: _calendarFormat,
+            eventLoader: _getAppointmentsForDay,
+            onDaySelected: _onDaySelected,
+            onFormatChanged: (format) {
+              setState(() => _calendarFormat = format);
+            },
+            calendarStyle: CalendarStyle(
+              markerDecoration: BoxDecoration(
+                color: Colors.blueAccent,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ValueListenableBuilder<List<Appointment>>(
+              valueListenable: _selectedAppointments,
+              builder: (context, appointments, _) {
+                return ListView.builder(
+                  itemCount: appointments.length,
+                  itemBuilder: (context, index) {
+                    final appointment = appointments[index];
+                    return ListTile(
+                      leading: const Icon(Icons.medical_services, color: Colors.blue),
+                      title: Text(appointment.title),
+                      subtitle: Text(DateFormat('hh:mm a').format(appointment.date)),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-final kToday = DateTime.now();
-final kFirstDay = DateTime(kToday.year, kToday.month - 3, kToday.day);
-final kLastDay = DateTime(kToday.year, kToday.month + 3, kToday.day);
+class Appointment {
+  final String title;
+  final DateTime date;
+
+  Appointment({required this.title, required this.date});
+}

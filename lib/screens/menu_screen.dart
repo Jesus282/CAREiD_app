@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:login/screens/BaseScreen.dart';
+import 'package:login/Actions/utils.dart' show Appointment, CalendarScreen;
+import 'package:intl/intl.dart';
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({Key? key}) : super(key: key);
@@ -10,10 +12,9 @@ class MenuScreen extends StatefulWidget {
 
 class _MenuScreenState extends State<MenuScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  List<String> medicalAppointments = [];
+  List<Appointment> medicalAppointments = [];
   int _currentBottomNavIndex = 0;
 
-  // Método para mostrar diálogo de nueva cita
   void _showAddAppointmentDialog() {
     final appointmentController = TextEditingController();
 
@@ -21,6 +22,21 @@ class _MenuScreenState extends State<MenuScreen> {
       context: context,
       builder: (context) => _buildAppointmentDialog(appointmentController),
     );
+  }
+
+  void _addNewAppointment(TextEditingController controller) {
+    final appointmentText = controller.text.trim();
+    if (appointmentText.isNotEmpty) {
+      setState(() {
+        medicalAppointments.add(
+          Appointment(
+            title: appointmentText,
+            date: DateTime.now(),
+          ),
+        );
+      });
+      Navigator.pop(context);
+    }
   }
 
   Widget _buildAppointmentDialog(TextEditingController controller) {
@@ -39,67 +55,58 @@ class _MenuScreenState extends State<MenuScreen> {
           child: const Text('CANCELAR'),
         ),
         ElevatedButton(
-          onPressed: () {
-            if (controller.text.trim().isNotEmpty) {
-              setState(() {
-                medicalAppointments.add(controller.text.trim());
-              });
-              Navigator.pop(context);
-            }
-          },
+          onPressed: () => _addNewAppointment(controller),
           child: const Text('AGREGAR'),
         ),
       ],
     );
   }
 
-  // Método para construir el botón flotante CORREGIDO
-  FloatingActionButton _buildAddButton() {
-    return FloatingActionButton(
-      onPressed: _showAddAppointmentDialog,
-      backgroundColor: Colors.blueAccent,
-      child: const Icon(Icons.add, size: 28),
-      tooltip: 'Agregar cita',
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BaseScreen(
-      scaffoldKey: _scaffoldKey,
-      currentIndex: _currentBottomNavIndex,
-      floatingActionButton: _buildAddButton(), // Ahora recibe un FloatingActionButton directamente
-      body: medicalAppointments.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: medicalAppointments.length,
-              itemBuilder: (context, index) => Card(
-                margin: const EdgeInsets.only(bottom: 16.0),
-                child: ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: Colors.blueAccent,
-                    child: Icon(Icons.medical_services, color: Colors.white),
-                  ),
-                  title: Text(medicalAppointments[index]),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => Navigator.pushNamed(context, '/perfilconsulta'),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => setState(() {
-                          medicalAppointments.removeAt(index);
-                        }),
-                      ),
-                    ],
+    return Scaffold(
+      body: BaseScreen(
+        scaffoldKey: _scaffoldKey,
+        currentIndex: _currentBottomNavIndex,
+        body: medicalAppointments.isEmpty
+            ? _buildEmptyState()
+            : ListView.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: medicalAppointments.length,
+                itemBuilder: (context, index) => Card(
+                  margin: const EdgeInsets.only(bottom: 16.0),
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Colors.blueAccent,
+                      child: Icon(Icons.medical_services, color: Colors.white),
+                    ),
+                    title: Text(medicalAppointments[index].title),
+                    subtitle: Text(
+                      'Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(medicalAppointments[index].date)}',
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () => Navigator.pushNamed(context, '/perfilconsulta'),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => setState(() {
+                            medicalAppointments.removeAt(index);
+                          }),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddAppointmentDialog,
+        child: const Icon(Icons.add),
+      ),
     );
   }
 

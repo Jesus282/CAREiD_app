@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:login/Actions/utils.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 class TableEvents extends StatefulWidget {
@@ -13,18 +12,45 @@ class TableEvents extends StatefulWidget {
 class _TableEventsState extends State<TableEvents> {
   late final ValueNotifier<List<Event>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.month;
-  RangeSelectionMode _rangeSelectionMode = RangeSelectionMode.toggledOff;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  DateTime? _rangeStart;
-  DateTime? _rangeEnd;
+  
+  // 1. Definimos las variables de rango de fechas
+  final DateTime _firstDay = DateTime.now().subtract(const Duration(days: 365));
+  final DateTime _lastDay = DateTime.now().add(const Duration(days: 365));
+  
+  // 2. Creamos un mapa de eventos vacío
+  final Map<DateTime, List<Event>> _events = {};
 
   @override
   void initState() {
     super.initState();
     initializeDateFormatting();
     _selectedDay = _focusedDay;
+    
+    // 3. Inicializamos con eventos de ejemplo (opcional)
+    _addExampleEvents();
+    
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
+  }
+
+  // 4. Método para añadir eventos de ejemplo
+  void _addExampleEvents() {
+    final today = DateTime.now();
+    
+    _events[today] = [
+      Event('Consulta con el cardiólogo'),
+      Event('Revisión de análisis'),
+    ];
+    
+    _events[today.add(const Duration(days: 1))] = [
+      Event('Cita con el dentista'),
+    ];
+    
+    _events[today.add(const Duration(days: 3))] = [
+      Event('Control médico'),
+      Event('Fisioterapia'),
+    ];
   }
 
   @override
@@ -34,12 +60,7 @@ class _TableEventsState extends State<TableEvents> {
   }
 
   List<Event> _getEventsForDay(DateTime day) {
-    return kEvents[day] ?? [];
-  }
-
-  List<Event> _getEventsForRange(DateTime start, DateTime end) {
-    final days = daysInRange(start, end);
-    return [for (final d in days) ..._getEventsForDay(d)];
+    return _events[day] ?? [];
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -47,29 +68,8 @@ class _TableEventsState extends State<TableEvents> {
       setState(() {
         _selectedDay = selectedDay;
         _focusedDay = focusedDay;
-        _rangeStart = null;
-        _rangeEnd = null;
-        _rangeSelectionMode = RangeSelectionMode.toggledOff;
       });
       _selectedEvents.value = _getEventsForDay(selectedDay);
-    }
-  }
-
-  void _onRangeSelected(DateTime? start, DateTime? end, DateTime focusedDay) {
-    setState(() {
-      _selectedDay = null;
-      _focusedDay = focusedDay;
-      _rangeStart = start;
-      _rangeEnd = end;
-      _rangeSelectionMode = RangeSelectionMode.toggledOn;
-    });
-
-    if (start != null && end != null) {
-      _selectedEvents.value = _getEventsForRange(start, end);
-    } else if (start != null) {
-      _selectedEvents.value = _getEventsForDay(start);
-    } else if (end != null) {
-      _selectedEvents.value = _getEventsForDay(end);
     }
   }
 
@@ -77,32 +77,46 @@ class _TableEventsState extends State<TableEvents> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calendario'),
+        title: const Text('Calendario de Citas'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _showAddEventDialog,
+            tooltip: 'Agregar cita',
+          ),
+        ],
       ),
       body: Column(
         children: [
           TableCalendar<Event>(
-            firstDay: kFirstDay,
-            lastDay: kLastDay,
+            firstDay: _firstDay,
+            lastDay: _lastDay,
             focusedDay: _focusedDay,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            rangeStartDay: _rangeStart,
-            rangeEndDay: _rangeEnd,
             calendarFormat: _calendarFormat,
-            rangeSelectionMode: _rangeSelectionMode,
             eventLoader: _getEventsForDay,
             startingDayOfWeek: StartingDayOfWeek.monday,
-            calendarStyle: const CalendarStyle(
-              outsideDaysVisible: false,
+            calendarStyle: CalendarStyle(
+              markerDecoration: BoxDecoration(
+                color: Colors.blueAccent,
+                shape: BoxShape.circle,
+              ),
+              todayDecoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.3),
+                shape: BoxShape.circle,
+              ),
+              selectedDecoration: BoxDecoration(
+                color: Colors.blueAccent,
+                shape: BoxShape.circle,
+              ),
+            ),
+            headerStyle: HeaderStyle(
+              formatButtonVisible: true,
+              titleCentered: true,
             ),
             onDaySelected: _onDaySelected,
-            onRangeSelected: _onRangeSelected,
             onFormatChanged: (format) {
-              if (_calendarFormat != format) {
-                setState(() {
-                  _calendarFormat = format;
-                });
-              }
+              setState(() => _calendarFormat = format);
             },
             onPageChanged: (focusedDay) {
               _focusedDay = focusedDay;
@@ -112,26 +126,33 @@ class _TableEventsState extends State<TableEvents> {
           Expanded(
             child: ValueListenableBuilder<List<Event>>(
               valueListenable: _selectedEvents,
-              builder: (context, value, _) {
-                return ListView.builder(
-                  itemCount: value.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 12.0,
-                        vertical: 4.0,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: ListTile(
-                        onTap: () => print('${value[index]}'),
-                        title: Text('${value[index]}'),
-                      ),
-                    );
-                  },
-                );
+              builder: (context, events, _) {
+                return events.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No hay citas para este día',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: events.length,
+                        itemBuilder: (context, index) {
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 12.0,
+                              vertical: 4.0,
+                            ),
+                            child: ListTile(
+                              leading: const Icon(Icons.event, color: Colors.blue),
+                              title: Text(events[index].title),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _removeEvent(events[index], _selectedDay!),
+                              ),
+                            ),
+                          );
+                        },
+                      );
               },
             ),
           ),
@@ -139,4 +160,82 @@ class _TableEventsState extends State<TableEvents> {
       ),
     );
   }
+
+  // 5. Diálogo para agregar nuevos eventos
+  void _showAddEventDialog() async {
+    final titleController = TextEditingController();
+    DateTime selectedDate = _selectedDay ?? DateTime.now();
+
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: _firstDay,
+      lastDate: _lastDay,
+    );
+
+    if (pickedDate != null) {
+      selectedDate = pickedDate;
+      
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Nueva Cita'),
+          content: TextField(
+            controller: titleController,
+            decoration: const InputDecoration(
+              labelText: 'Descripción de la cita',
+              hintText: 'Ej: Consulta médica',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (titleController.text.trim().isNotEmpty) {
+                  _addEvent(
+                    selectedDate,
+                    Event(titleController.text.trim()),
+                  );
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  // 6. Método para agregar eventos
+  void _addEvent(DateTime day, Event event) {
+    setState(() {
+      if (_events[day] == null) {
+        _events[day] = [event];
+      } else {
+        _events[day]!.add(event);
+      }
+      _selectedEvents.value = _getEventsForDay(day);
+    });
+  }
+
+  // 7. Método para eliminar eventos
+  void _removeEvent(Event event, DateTime day) {
+    setState(() {
+      _events[day]?.remove(event);
+      _selectedEvents.value = _getEventsForDay(day);
+    });
+  }
+}
+
+class Event {
+  final String title;
+
+  const Event(this.title);
+
+  @override
+  String toString() => title;
 }
