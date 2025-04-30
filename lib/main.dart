@@ -26,8 +26,8 @@ import 'screens/location_screen.dart';
 
 void main() async {
   // Inicialización de Firebase (comentado temporalmente)
-  // WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp();
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   
   runApp(const MyApp());
 }
