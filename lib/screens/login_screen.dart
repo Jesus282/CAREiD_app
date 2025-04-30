@@ -25,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await supabase
-          .from('usuarios1')
+          .from('newusuarios')
           .select()
           .eq('correo', correo)
           .eq('contrasena', contrasenaHash)
@@ -52,11 +52,8 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
-  void _onLoginPressed() {
-  Navigator.pushReplacementNamed(context, '/menu');
-}
 
-  /*void _onLoginPressed() {
+  void _onLoginPressed() {
     final correo = _emailController.text.trim();
     final contrasena = _passwordController.text;
     if (correo.isEmpty || contrasena.isEmpty) {
@@ -67,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     iniciarSesion(correo, contrasena);
   }
-*/
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
