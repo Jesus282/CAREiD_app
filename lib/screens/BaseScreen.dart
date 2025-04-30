@@ -67,7 +67,7 @@ class BaseScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.folder, color: Colors.blue),
             title: const Text('Mis documentos'),
-            onTap: () => _navigateTo(context, '/clinicas'),
+            onTap: () => _navigateTo(context, '/registroclinico'),
           ),
           ListTile(
             leading: const Icon(Icons.notifications_active, color: Colors.blue),

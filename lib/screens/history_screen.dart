@@ -11,6 +11,7 @@ class UploadScreen extends StatefulWidget {
 
 class _UploadScreenState extends State<UploadScreen> {
   bool isUploading = false;
+  int _currentIndex = 0;
 
   Future<void> uploadFile() async {
     setState(() {
@@ -38,6 +39,20 @@ class _UploadScreenState extends State<UploadScreen> {
 
   void goToDocumentList() {
     Navigator.pushNamed(context, '/documentList');
+  }
+
+  void _onBottomNavTapped(int index) {
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(context, '/menu');
+        break;
+      case 1:
+        Navigator.pushReplacementNamed(context, '/location');
+        break;
+      case 2:
+        Navigator.pushReplacementNamed(context, '/chat');
+        break;
+    }
   }
 
   @override
@@ -110,6 +125,29 @@ class _UploadScreenState extends State<UploadScreen> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+          _onBottomNavTapped(index);
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.menu),
+            label: 'Menú',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on),
+            label: 'Ubicación',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chat',
+          ),
+        ],
       ),
     );
   }

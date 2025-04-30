@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
-class DocumentListScreen extends StatelessWidget {
+class DocumentListScreen extends StatefulWidget {
+  @override
+  _DocumentListScreenState createState() => _DocumentListScreenState();
+}
+
+class _DocumentListScreenState extends State<DocumentListScreen> {
   final List<String> documentTitles = List.generate(20, (i) => 'Documento ${i + 1}');
 
   List<Color> generateBlueGradient(int count) {
@@ -12,6 +17,22 @@ class DocumentListScreen extends StatelessWidget {
         t,
       )!;
     });
+  }
+
+  int _currentIndex = 0;
+
+  void _onBottomNavTapped(int index) {
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(context, '/menu');
+        break;
+      case 1:
+        Navigator.pushReplacementNamed(context, '/location');
+        break;
+      case 2:
+        Navigator.pushReplacementNamed(context, '/chat');
+        break;
+    }
   }
 
   @override
@@ -46,6 +67,29 @@ class DocumentListScreen extends StatelessWidget {
             ),
           );
         },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+          _onBottomNavTapped(index);
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.menu),
+            label: 'Menú',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on),
+            label: 'Ubicación',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chat',
+          ),
+        ],
       ),
     );
   }
