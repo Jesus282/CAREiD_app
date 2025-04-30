@@ -16,7 +16,7 @@ import 'screens/calendar_screen.dart';
 import 'screens/chat_screen.dart';
 import 'screens/alarm_screen.dart';
 import 'screens/clinic_list.dart';
-import 'screens/contact_scree.dart';
+import 'screens/contact_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/mediclist_screen.dart';
 import 'screens/profilecosult_screen.dart';
@@ -65,11 +65,11 @@ class MyApp extends StatelessWidget {
         '/clinicas': (context) => ClinicListScreen(),
         '/location': (context) => MedicalMapScreen(),
         '/contacto': (context) => ContactScreen(),
-        '/historial': (context) => HistoryScreen(),
+        '/historial': (context) => UploadScreen(),
         '/medicamentos': (context) => MedicListScreen(),
         '/perfilconsulta': (context) => ConsultaScreen(),
         '/perfil': (context) => ProfileScreen(),
-        '/registroclinico': (context) => RecordScreen(),
+        '/registroclinico': (context) => DocumentListScreen(),
         '/ajustes': (context) => SettingsScreen(),
         '/plan': (context) => PlanScreen(),
         '/error': (context) => FailureScreen(),
