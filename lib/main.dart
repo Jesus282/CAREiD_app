@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';//Conexion BD
+
 // Importaciones de pantallas
 import 'screens/login_screen.dart';
 import 'screens/splash_screen.dart';
@@ -14,7 +16,7 @@ import 'screens/calendar_screen.dart';
 import 'screens/chat_screen.dart';
 import 'screens/alarm_screen.dart';
 import 'screens/clinic_list.dart';
-import 'screens/contact_scree.dart';
+import 'screens/contact_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/mediclist_screen.dart';
 import 'screens/profilecosult_screen.dart';
@@ -29,6 +31,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   
+  // WidgetsFlutterBinding.ensureInitialized();
+  // await Firebase.initializeApp();
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+   url: 'https://mgbdvzesfyrzqdikalub.supabase.co', // URL de tu proyecto
+   anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nYmR2emVzZnlyenFkaWthbHViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNzAyMzIsImV4cCI6MjA2MDg0NjIzMn0.sU3O8DpBLqS9AP9osi796ZX-wmZgFMDOl0oQEmLw8uw', // Clave pública de tu proyecto
+  );
   runApp(const MyApp());
 }
 
@@ -59,11 +68,11 @@ class MyApp extends StatelessWidget {
         '/clinicas': (context) => ClinicListScreen(),
         '/location': (context) => MedicalMapScreen(),
         '/contacto': (context) => ContactScreen(),
-        '/historial': (context) => HistoryScreen(),
+        '/historial': (context) => UploadScreen(),
         '/medicamentos': (context) => MedicListScreen(),
         '/perfilconsulta': (context) => ConsultaScreen(),
         '/perfil': (context) => ProfileScreen(),
-        '/registroclinico': (context) => RecordScreen(),
+        '/registroclinico': (context) => DocumentListScreen(),
         '/ajustes': (context) => SettingsScreen(),
         '/plan': (context) => PlanScreen(),
         '/error': (context) => FailureScreen(),

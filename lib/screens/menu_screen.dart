@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:login/screens/BaseScreen.dart';
+import 'package:login/Actions/utils.dart' show Appointment, CalendarScreen;
+import 'package:intl/intl.dart';
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({Key? key}) : super(key: key);
@@ -10,124 +12,114 @@ class MenuScreen extends StatefulWidget {
 
 class _MenuScreenState extends State<MenuScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  List<String> appointments = [];
-  int _currentIndex = 0;
+  List<Appointment> medicalAppointments = [];
+  int _currentBottomNavIndex = 0;
 
   void _showAddAppointmentDialog() {
-    TextEditingController _controller = TextEditingController();
+    final appointmentController = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Nueva cita'),
-          content: TextField(
-            controller: _controller,
-            decoration: const InputDecoration(
-              hintText: 'Escribe el nombre de la cita',
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () => Navigator.pop(context),
-            ),
-            ElevatedButton(
-              child: const Text('Agregar'),
-              onPressed: () {
-                if (_controller.text.trim().isNotEmpty) {
-                  setState(() {
-                    appointments.add(_controller.text.trim());
-                  });
-                  Navigator.pop(context);
-                }
-              },
-            ),
-          ],
-        );
-      },
+      builder: (context) => _buildAppointmentDialog(appointmentController),
     );
   }
 
-  void _onBottomNavTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-
-    switch (index) {
-      case 1:
-        Navigator.pushNamed(context, '/location');
-        break;
-      case 2:
-        Navigator.pushNamed(context, '/chat');
-        break;
-      default:
-        Navigator.pushReplacementNamed(context, '/menu');
-        break;
+  void _addNewAppointment(TextEditingController controller) {
+    final appointmentText = controller.text.trim();
+    if (appointmentText.isNotEmpty) {
+      setState(() {
+        medicalAppointments.add(
+          Appointment(
+            title: appointmentText,
+            date: DateTime.now(),
+          ),
+        );
+      });
+      Navigator.pop(context);
     }
+  }
+
+  Widget _buildAppointmentDialog(TextEditingController controller) {
+    return AlertDialog(
+      title: const Text('Agendar Nueva Cita'),
+      content: TextField(
+        controller: controller,
+        decoration: const InputDecoration(
+          hintText: 'Ej: Consulta con Cardiología',
+          labelText: 'Nombre de la cita',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('CANCELAR'),
+        ),
+        ElevatedButton(
+          onPressed: () => _addNewAppointment(controller),
+          child: const Text('AGREGAR'),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return BaseScreen(
-      scaffoldKey: _scaffoldKey,
-      currentIndex: _currentIndex,
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddAppointmentDialog,
-        backgroundColor: Colors.blueAccent,
-        child: const Icon(Icons.add),
-      ),
-      body: appointments.isEmpty
-          ? const Center(
-              child: Text(
-                'No tienes citas programadas.',
-                style: TextStyle(fontSize: 18, color: Colors.black54),
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: appointments.length,
-              itemBuilder: (context, index) {
-                return Card(
+    return Scaffold(
+      body: BaseScreen(
+        scaffoldKey: _scaffoldKey,
+        currentIndex: _currentBottomNavIndex,
+        body: medicalAppointments.isEmpty
+            ? _buildEmptyState()
+            : ListView.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: medicalAppointments.length,
+                itemBuilder: (context, index) => Card(
                   margin: const EdgeInsets.only(bottom: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                  ),
-                  color: Colors.white.withOpacity(0.8),
                   child: ListTile(
                     leading: const CircleAvatar(
-                      radius: 25,
                       backgroundColor: Colors.blueAccent,
-                      child: Icon(Icons.calendar_today, color: Colors.white),
+                      child: Icon(Icons.medical_services, color: Colors.white),
                     ),
-                    title: Text(
-                      appointments[index],
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    title: Text(medicalAppointments[index].title),
+                    subtitle: Text(
+                      'Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(medicalAppointments[index].date)}',
                     ),
-                    subtitle: const Text('Detalles de la cita...'),
-                    trailing: Wrap(
-                      spacing: 12,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
                           icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () {
-                            Navigator.pushReplacementNamed(context, '/perfilconsulta');
-                          },
+                          onPressed: () => Navigator.pushNamed(context, '/perfilconsulta'),
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            setState(() {
-                              appointments.removeAt(index);
-                            });
-                          },
+                          onPressed: () => setState(() {
+                            medicalAppointments.removeAt(index);
+                          }),
                         ),
                       ],
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddAppointmentDialog,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.calendar_today, size: 64, color: Colors.grey),
+          SizedBox(height: 16),
+          Text('No tienes citas programadas'),
+        ],
+      ),
     );
   }
 }

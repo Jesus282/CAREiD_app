@@ -1,472 +1,96 @@
 import 'package:flutter/material.dart';
-class RecordScreen extends StatelessWidget {
+
+class DocumentListScreen extends StatefulWidget {
+  @override
+  _DocumentListScreenState createState() => _DocumentListScreenState();
+}
+
+class _DocumentListScreenState extends State<DocumentListScreen> {
+  final List<String> documentTitles = List.generate(20, (i) => 'Documento ${i + 1}');
+
+  List<Color> generateBlueGradient(int count) {
+    return List<Color>.generate(count, (index) {
+      final t = index / (count - 1 == 0 ? 1 : count - 1); // evita división entre cero
+      return Color.lerp(
+        Color(0xFFE0F7FA), // azul muy claro
+        Color(0xFF0288D1), // azul fuerte
+        t,
+      )!;
+    });
+  }
+
+  int _currentIndex = 0;
+
+  void _onBottomNavTapped(int index) {
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(context, '/menu');
+        break;
+      case 1:
+        Navigator.pushReplacementNamed(context, '/location');
+        break;
+      case 2:
+        Navigator.pushReplacementNamed(context, '/chat');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 375,
-          height: 812,
-          clipBehavior: Clip.antiAlias,
-          decoration: ShapeDecoration(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(
-              side: BorderSide(
-                width: 2,
-                color: const Color(0xFF0092EC),
-              ),
-              borderRadius: BorderRadius.circular(40),
+    final colors = generateBlueGradient(documentTitles.length);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Archivos Subidos'),
+        backgroundColor: const Color.fromARGB(255, 129, 221, 224),
+      ),
+      body: ListView.builder(
+        itemCount: documentTitles.length,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colors[index],
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(2, 2),
+                ),
+              ],
             ),
-            shadows: [
-              BoxShadow(
-                color: Color(0xFF0093ED),
-                blurRadius: 0,
-                offset: Offset(0, 8),
-                spreadRadius: 0,
-              )
-            ],
+            child: Text(
+              documentTitles[index],
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            ),
+          );
+        },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+          _onBottomNavTapped(index);
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.menu),
+            label: 'Menú',
           ),
-          child: Stack(
-            children: [
-              Positioned(
-                left: 0,
-                top: 0,
-                child: Container(
-                  width: 375,
-                  padding: const EdgeInsets.only(
-                    top: 48,
-                    left: 24,
-                    right: 24,
-                    bottom: 24,
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 80,
-                    children: [
-                      Container(
-                        width: 24,
-                        height: 24,
-                        clipBehavior: Clip.antiAlias,
-                        decoration: BoxDecoration(),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 1.50,
-                              top: 1.50,
-                              child: Container(
-                                width: 21,
-                                height: 21,
-                                decoration: ShapeDecoration(
-                                  shape: OvalBorder(
-                                    side: BorderSide(
-                                      width: 3,
-                                      strokeAlign: BorderSide.strokeAlignCenter,
-                                      color: const Color(0xFF0092EC),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top: 172,
-                child: Container(
-                  width: 375,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  decoration: BoxDecoration(color: Colors.white),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 12,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: 200,
-                          padding: const EdgeInsets.all(24),
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFFD6F5FF),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            spacing: 12,
-                            children: [
-                              Container(
-                                width: 213,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  spacing: 16,
-                                  children: [
-                                    Container(
-                                      width: 203,
-                                      height: 18,
-                                      child: Stack(
-                                        children: [
-                                          Positioned(
-                                            left: 0,
-                                            top: 0,
-                                            child: Container(
-                                              width: 203,
-                                              height: 18,
-                                              decoration: ShapeDecoration(
-                                                color: const Color(0xFF0092EC),
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      width: 141,
-                                      height: 18,
-                                      child: Stack(
-                                        children: [
-                                          Positioned(
-                                            left: 0,
-                                            top: 0,
-                                            child: Container(
-                                              width: 141,
-                                              height: 18,
-                                              decoration: ShapeDecoration(
-                                                color: const Color(0xFF7DD8FF),
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: 54,
-                                height: 54,
-                                decoration: ShapeDecoration(
-                                  color: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  spacing: 10,
-                                  children: [
-                                    Container(
-                                      width: 48,
-                                      height: 48,
-                                      clipBehavior: Clip.antiAlias,
-                                      decoration: BoxDecoration(),
-                                      child: Stack(),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top: 404,
-                child: Container(
-                  width: 375,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  decoration: BoxDecoration(color: Colors.white),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 12,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: 200,
-                          padding: const EdgeInsets.all(24),
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFFD6F5FF),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            spacing: 12,
-                            children: [
-                              Container(
-                                width: 213,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  spacing: 16,
-                                  children: [
-                                    Container(
-                                      width: 203,
-                                      height: 18,
-                                      child: Stack(
-                                        children: [
-                                          Positioned(
-                                            left: 0,
-                                            top: 0,
-                                            child: Container(
-                                              width: 203,
-                                              height: 18,
-                                              decoration: ShapeDecoration(
-                                                color: const Color(0xFF0092EC),
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      width: 141,
-                                      height: 18,
-                                      child: Stack(
-                                        children: [
-                                          Positioned(
-                                            left: 0,
-                                            top: 0,
-                                            child: Container(
-                                              width: 141,
-                                              height: 18,
-                                              decoration: ShapeDecoration(
-                                                color: const Color(0xFF7DD8FF),
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: 54,
-                                height: 54,
-                                decoration: ShapeDecoration(
-                                  color: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  spacing: 10,
-                                  children: [
-                                    Container(
-                                      width: 48,
-                                      height: 48,
-                                      clipBehavior: Clip.antiAlias,
-                                      decoration: BoxDecoration(),
-                                      child: Stack(),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top: 636,
-                child: Container(
-                  width: 375,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  decoration: BoxDecoration(color: Colors.white),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 12,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: 200,
-                          padding: const EdgeInsets.all(24),
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFFD6F5FF),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            spacing: 12,
-                            children: [
-                              Container(
-                                width: 213,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  spacing: 16,
-                                  children: [
-                                    Container(
-                                      width: 203,
-                                      height: 18,
-                                      child: Stack(
-                                        children: [
-                                          Positioned(
-                                            left: 0,
-                                            top: 0,
-                                            child: Container(
-                                              width: 203,
-                                              height: 18,
-                                              decoration: ShapeDecoration(
-                                                color: const Color(0xFF0092EC),
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      width: 141,
-                                      height: 18,
-                                      child: Stack(
-                                        children: [
-                                          Positioned(
-                                            left: 0,
-                                            top: 0,
-                                            child: Container(
-                                              width: 141,
-                                              height: 18,
-                                              decoration: ShapeDecoration(
-                                                color: const Color(0xFF7DD8FF),
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: 54,
-                                height: 54,
-                                decoration: ShapeDecoration(
-                                  color: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  spacing: 10,
-                                  children: [
-                                    Container(
-                                      width: 48,
-                                      height: 48,
-                                      clipBehavior: Clip.antiAlias,
-                                      decoration: BoxDecoration(),
-                                      child: Stack(),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 24,
-                top: 96,
-                child: Container(
-                  width: 327,
-                  height: 64,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  decoration: ShapeDecoration(
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                        width: 2,
-                        color: const Color(0xFF0092EC),
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 10,
-                    children: [
-                      Container(
-                        width: 130,
-                        height: 12,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: 130,
-                                height: 12,
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFF0092EC),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on),
+            label: 'Ubicación',
           ),
-        ),
-      ],
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chat',
+          ),
+        ],
+      ),
     );
   }
 }

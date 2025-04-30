@@ -4,7 +4,7 @@ class BaseScreen extends StatelessWidget {
   final Widget body;
   final int currentIndex;
   final GlobalKey<ScaffoldState> scaffoldKey;
-  final FloatingActionButton? floatingActionButton; 
+  final FloatingActionButton? floatingActionButton;
   final String? title;
 
   const BaseScreen({
@@ -23,13 +23,13 @@ class BaseScreen extends StatelessWidget {
   void _onBottomNavTapped(BuildContext context, int index) {
     switch (index) {
       case 0:
-        _navigateTo(context, '/menu');       // Página principal
+        _navigateTo(context, '/menu'); // Página principal
         break;
       case 1:
-        _navigateTo(context, '/location');     // Página del mapa
+        _navigateTo(context, '/location'); // Página del mapa
         break;
       case 2:
-        _navigateTo(context, '/chat');    // Página de chats
+        _navigateTo(context, '/chat'); // Página de chats
         break;
     }
   }
@@ -38,11 +38,12 @@ class BaseScreen extends StatelessWidget {
     return Drawer(
       backgroundColor: Colors.lightBlue[50],
       child: ListView(
-        
         padding: EdgeInsets.zero,
         children: [
           const DrawerHeader(
-            decoration: BoxDecoration(color: Color.fromARGB(255, 129, 221, 224)),
+            decoration: BoxDecoration(
+              color: Color.fromARGB(255, 129, 221, 224),
+            ),
             child: Text(
               'MENU CAREiD',
               style: TextStyle(color: Colors.white, fontSize: 24),
@@ -66,12 +67,17 @@ class BaseScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.folder, color: Colors.blue),
             title: const Text('Mis documentos'),
-            onTap: () => _navigateTo(context, '/clinicas'),
+            onTap: () => _navigateTo(context, '/registroclinico'),
           ),
           ListTile(
             leading: const Icon(Icons.notifications_active, color: Colors.blue),
             title: const Text('Mis recordatorios'),
             onTap: () => _navigateTo(context, '/alarma'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.calendar_today, color: Colors.blue),
+            title: const Text('Calendario'),
+            onTap: () => _navigateTo(context, '/calendario'), // Ruta del calendario
           ),
           ListTile(
             leading: const Icon(Icons.help_outline, color: Colors.blue),
@@ -110,10 +116,10 @@ class BaseScreen extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Opacity(
-            opacity: 0.5, 
+            opacity: 0.5,
             child: Image.asset(
-            'fondo.jpg',
-            fit: BoxFit.cover,
+              'fondo.jpg',
+              fit: BoxFit.cover,
             ),
           ),
           body,
@@ -144,3 +150,4 @@ class BaseScreen extends StatelessWidget {
     );
   }
 }
+

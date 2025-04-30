@@ -258,6 +258,36 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
                   ),
               ],
             ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 1, // Índice actual para la pantalla de ubicación
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pushReplacementNamed(context, '/menu');
+              break;
+            case 1:
+              Navigator.pushReplacementNamed(context, '/location');
+              break;
+            case 2:
+              Navigator.pushReplacementNamed(context, '/chat');
+              break;
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.menu),
+            label: 'Menú',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on),
+            label: 'Ubicación',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chat',
+          ),
+        ],
+      ),
     );
   }
 

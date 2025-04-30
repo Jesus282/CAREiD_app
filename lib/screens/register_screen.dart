@@ -51,6 +51,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    // --- Validación de longitud mínima de la contraseña ---
+    if (_contrasenaController.text.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('La contraseña debe tener al menos 6 caracteres')),
+      );
+      return;
+    }
+
     // --- Confirmar contraseña ---
     if (_contrasenaController.text != _confirmarContrasenaController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,36 +72,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      await supabase.from('usuarios1').insert({
-        'nombre': _nombreController.text,
-        'correo': _correoController.text,
-        'telefono': _telefonoController.text,
-        'contrasena': hashedPassword,
-      });
+    // 1. Crear el usuario en Auth
+    final AuthResponse response = await supabase.auth.signUp(
+      email: _correoController.text,
+      password: _contrasenaController.text,
+    );
 
-      // --- Limpiar campos después del registro exitoso ---
-      _nombreController.clear();
-      _correoController.clear();
-      _telefonoController.clear();
-      _contrasenaController.clear();
-      _confirmarContrasenaController.clear();
+    final user = response.user;
 
-      // --- Mostrar un diálogo bonito ---
-      await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('¡Registro exitoso!'),
-          content: Text('Tu cuenta ha sido creada correctamente.'),
-          actions: [
-            TextButton(
-              child: Text('Aceptar'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Cerrar el diálogo
-              },
-            ),
-          ],
-        ),
-      );
+    if (user == null) {
+      throw Exception("No se pudo registrar el usuario.");
+    }
+
+    // 2. Insertar los datos adicionales en tu tabla 'newusuarios'
+    await supabase.from('newusuarios').insert({
+      'id': user.id,  // UUID asignado por Supabase Auth
+      'nombre': _nombreController.text,
+      'correo': _correoController.text,
+      'telefono': _telefonoController.text,
+      'contrasena': hashedPassword,
+    });
+
+    _nombreController.clear();
+    _correoController.clear();
+    _telefonoController.clear();
+    _contrasenaController.clear();
+    _confirmarContrasenaController.clear();
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('¡Registro exitoso!'),
+        content: Text('Tu cuenta ha sido creada correctamente.'),
+        actions: [
+          TextButton(
+            child: Text('Aceptar'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
 
       // --- Navegar a /plan ---
       Navigator.pushReplacementNamed(context, '/plan');
@@ -196,25 +216,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 20),
               _isLoading
                   ? Center(child: CircularProgressIndicator())
-                  : 
-                  ElevatedButton(
-  style: ElevatedButton.styleFrom(
-    backgroundColor: Colors.blue,
-    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 80),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    ),
-  ),
-  onPressed: () {
-    Navigator.pushReplacementNamed(context, '/plan');
-  },
-  child: const Text(
-    "Registrarse",
-    style: TextStyle(fontSize: 18, color: Colors.white),
-  ),
-),
-
-                  /*ElevatedButton(
+                  : ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 80),
@@ -224,7 +226,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       onPressed: registrarUsuario,
                       child: const Text("Registrarse", style: TextStyle(fontSize: 18, color: Colors.white)),
-                    ),*/
+                    ),
               const SizedBox(height: 15),
               TextButton(
                 onPressed: () {
