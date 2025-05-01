@@ -44,9 +44,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'CAREiD',
+      debugShowCheckedModeBanner: false, // Oculta la cinta de "DEBUG"
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 100, 218, 182)
+          seedColor: const Color.fromARGB(255, 100, 218, 182),
         ),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),

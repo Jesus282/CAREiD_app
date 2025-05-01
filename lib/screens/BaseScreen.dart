@@ -20,6 +20,66 @@ class BaseScreen extends StatelessWidget {
     Navigator.pushReplacementNamed(context, routeName);
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      key: scaffoldKey,
+      endDrawer: _buildDrawer(context),
+      appBar: AppBar(
+        title: Text(title ?? 'CAREiD'),
+        centerTitle: true,
+        backgroundColor: const Color.fromARGB(255, 184, 210, 255),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              scaffoldKey.currentState?.openEndDrawer();
+            },
+          ),
+        ],
+      ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Opacity(
+            opacity: 0.5,
+            child: Image.asset(
+              'fondo.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+          body,
+        ],
+      ),
+      floatingActionButton: floatingActionButton,
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.blue[100],
+        selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: Colors.black54,
+        currentIndex: currentIndex,
+        onTap: (index) => _onBottomNavTapped(context, index),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Inicio',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: 'Mapas',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chat',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.folder),
+            label: 'Documentos',
+          ),
+        ],
+      ),
+    );
+  }
+
   void _onBottomNavTapped(BuildContext context, int index) {
     switch (index) {
       case 0:
@@ -30,6 +90,9 @@ class BaseScreen extends StatelessWidget {
         break;
       case 2:
         _navigateTo(context, '/chat'); // Página de chats
+        break;
+      case 3:
+        _navigateTo(context, '/historial'); // Página de documentos
         break;
     }
   }
@@ -88,62 +151,6 @@ class BaseScreen extends StatelessWidget {
             leading: const Icon(Icons.settings, color: Colors.blue),
             title: const Text('Configuraciones generales'),
             onTap: () => _navigateTo(context, '/configuracion'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      key: scaffoldKey,
-      endDrawer: _buildDrawer(context),
-      appBar: AppBar(
-        title: Text(title ?? 'CAREiD'),
-        centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 184, 210, 255),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              scaffoldKey.currentState?.openEndDrawer();
-            },
-          ),
-        ],
-      ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Opacity(
-            opacity: 0.5,
-            child: Image.asset(
-              'fondo.jpg',
-              fit: BoxFit.cover,
-            ),
-          ),
-          body,
-        ],
-      ),
-      floatingActionButton: floatingActionButton,
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.blue[100],
-        selectedItemColor: Colors.blueAccent,
-        unselectedItemColor: Colors.black54,
-        currentIndex: currentIndex,
-        onTap: (index) => _onBottomNavTapped(context, index),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Mapas',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
           ),
         ],
       ),
