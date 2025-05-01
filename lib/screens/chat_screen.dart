@@ -1,4 +1,35 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+class FirebaseTestScreen extends StatelessWidget {
+  const FirebaseTestScreen({Key? key}) : super(key: key);
+
+  Future<void> _testFirestore() async {
+    try {
+      await FirebaseFirestore.instance.collection('test').add({
+        'mensaje': 'Conexión exitosa',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      debugPrint('✅ Documento enviado correctamente');
+    } catch (e) {
+      debugPrint('❌ Error al enviar: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Probar Firebase')),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: _testFirestore,
+          child: const Text('Probar conexión con Firestore'),
+        ),
+      ),
+    );
+  }
+}
+/*import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:login/screens/BaseScreen.dart';
 
@@ -179,3 +210,4 @@ class Bubble extends StatelessWidget {
     );
   }
 }
+*/
