@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart'; 
 
 import 'package:supabase_flutter/supabase_flutter.dart';//Conexion BD
 
@@ -29,7 +30,10 @@ import 'screens/location_screen.dart';
 void main() async {
   // Inicialización de Firebase (comentado temporalmente)
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   await Supabase.initialize(
    url: 'https://mgbdvzesfyrzqdikalub.supabase.co', // URL de tu proyecto
    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nYmR2emVzZnlyenFkaWthbHViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNzAyMzIsImV4cCI6MjA2MDg0NjIzMn0.sU3O8DpBLqS9AP9osi796ZX-wmZgFMDOl0oQEmLw8uw', // Clave pública de tu proyecto
@@ -59,7 +63,7 @@ class MyApp extends StatelessWidget {
         '/configuracion': (context) => ConfigurationScreen(),
         '/familia': (context) => FamilyScreen(),
         '/calendario': (context) => TableEvents(),
-        '/chat': (context) => FirebaseTestScreen(),
+        '/chat': (context) => ChatScreen(),
         '/alarma': (context) => AlarmScreen(),
         '/clinicas': (context) => ClinicListScreen(),
         '/location': (context) => MedicalMapScreen(),
