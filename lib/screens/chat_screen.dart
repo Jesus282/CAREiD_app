@@ -2,11 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
-  final String chatId; // ID único del chat entre dos usuarios
   final String receiverName;
 
-  const ChatScreen({Key? key, required this.chatId, required this.receiverName})
-      : super(key: key);
+  const ChatScreen({Key? key, required this.receiverName}) : super(key: key);
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -14,17 +12,15 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   void _sendMessage() {
-    final message = _messageController.text.trim();
-    if (message.isNotEmpty) {
-      FirebaseFirestore.instance
-          .collection('chats')
-          .doc(widget.chatId)
-          .collection('messages')
-          .add({
-        'text': message,
-        'sender': 'Usuario', // Puedes usar FirebaseAuth.currentUser?.uid
+    final text = _messageController.text.trim();
+    if (text.isNotEmpty) {
+      _firestore.collection('messages').add({
+        'sender': 'Usuario',
+        'receiver': widget.receiverName,
+        'message': text,
         'timestamp': FieldValue.serverTimestamp(),
       });
       _messageController.clear();
@@ -34,21 +30,28 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.receiverName)),
+      appBar: AppBar(
+        title: Text('Chat con ${widget.receiverName}'),
+      ),
       body: Column(
         children: [
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('chats')
-                  .doc(widget.chatId)
+              stream: _firestore
                   .collection('messages')
-                  .orderBy('timestamp')
+                  .orderBy('timestamp', descending: false)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                final messages = snapshot.data!.docs;
+                final messages = snapshot.data!.docs.where((doc) {
+                  final sender = doc['sender'];
+                  final receiver = doc['receiver'];
+                  return (sender == 'Usuario' && receiver == widget.receiverName) ||
+                         (sender == widget.receiverName && receiver == 'Usuario');
+                }).toList();
 
                 return ListView.builder(
                   padding: const EdgeInsets.all(8),
@@ -57,17 +60,20 @@ class _ChatScreenState extends State<ChatScreen> {
                     final data = messages[index];
                     final isMe = data['sender'] == 'Usuario';
                     return Align(
-                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      alignment:
+                          isMe ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.symmetric(vertical: 4),
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: isMe ? Colors.blueAccent : Colors.grey[300],
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          data['text'],
-                          style: TextStyle(color: isMe ? Colors.white : Colors.black),
+                          data['message'],
+                          style: TextStyle(
+                            color: isMe ? Colors.white : Colors.black,
+                          ),
                         ),
                       ),
                     );
@@ -76,6 +82,7 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
           ),
+          const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(8),
             child: Row(
@@ -85,18 +92,19 @@ class _ChatScreenState extends State<ChatScreen> {
                     controller: _messageController,
                     decoration: const InputDecoration(
                       hintText: 'Escribe un mensaje...',
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.send, color: Colors.blue),
                   onPressed: _sendMessage,
-                )
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

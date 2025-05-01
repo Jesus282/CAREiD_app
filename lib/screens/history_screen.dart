@@ -38,7 +38,7 @@ class _UploadScreenState extends State<UploadScreen> {
   }
 
   void goToDocumentList() {
-    Navigator.pushNamed(context, '/documentList');
+    Navigator.pushNamed(context, '/registroclinico');
   }
 
   void _onBottomNavTapped(int index) {
@@ -66,7 +66,7 @@ class _UploadScreenState extends State<UploadScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               const Text(
-                'CAREiD Archivos',
+                'Historial Médico',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
