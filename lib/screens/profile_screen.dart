@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:login/screens/BaseScreen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -12,39 +14,80 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _nombreController = TextEditingController();
-  final TextEditingController _bioController = TextEditingController();
   final TextEditingController _correoController = TextEditingController();
   final TextEditingController _telefonoController = TextEditingController();
-  final TextEditingController _direccionController = TextEditingController();
+  final TextEditingController _contrasenaController = TextEditingController();
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  File? _imagenPerfil;
-
-  Future<void> _seleccionarImagen() async {
-    final picker = ImagePicker();
-    final imagenSeleccionada = await picker.pickImage(source: ImageSource.gallery);
-
-    if (imagenSeleccionada != null) {
-      setState(() {
-        _imagenPerfil = File(imagenSeleccionada.path);
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatosUsuario();
   }
 
-  void _guardarPerfil() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Perfil actualizado exitosamente')),
-    );
+  Future<void> _cargarDatosUsuario() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    final response = await supabase
+        .from('newusuarios')
+        .select()
+        .eq('id', user.id)
+        .single();
+
+    setState(() {
+      _nombreController.text = response['nombre'] ?? '';
+      _correoController.text = response['correo'] ?? '';
+      _telefonoController.text = response['telefono']?.toString() ?? '';
+    });
+  }
+
+  Future<void> _guardarPerfil() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    final String nuevoCorreo = _correoController.text.trim();
+    final String nuevaContrasena = _contrasenaController.text.trim();
+
+    try {
+      // Actualizar datos en la tabla newusuarios
+      await supabase.from('newusuarios').update({
+        'nombre': _nombreController.text,
+        'correo': nuevoCorreo,
+        'telefono': int.tryParse(_telefonoController.text) ?? 0,
+      }).eq('id', user.id);
+
+      // Actualizar correo y contraseña en Supabase Auth
+      await supabase.auth.updateUser(
+        UserAttributes(
+          email: nuevoCorreo,
+          password: nuevaContrasena,
+        ),
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Perfil actualizado exitosamente')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al actualizar perfil: $error')),
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
     _nombreController.dispose();
-    _bioController.dispose();
     _correoController.dispose();
     _telefonoController.dispose();
-    _direccionController.dispose();
+    _contrasenaController.dispose();
     super.dispose();
   }
 
@@ -52,24 +95,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return BaseScreen(
       title: 'Editar Perfil',
-      currentIndex: 2, // 👈🏼 AÑADIDO: Define el índice actual (depende de tu BottomNavigationBar)
+      currentIndex: 2,
       scaffoldKey: _scaffoldKey,
-      
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            GestureDetector(
-              onTap: _seleccionarImagen,
-              child: CircleAvatar(
-                radius: 60,
-                backgroundColor: Colors.blue[100],
-                backgroundImage: _imagenPerfil != null ? FileImage(_imagenPerfil!) : null,
-                child: _imagenPerfil == null
-                    ? const Icon(Icons.camera_alt, size: 40, color: Colors.white)
-                    : null,
-              ),
-            ),
+            const Icon(Icons.person, size: 80, color: Colors.blue),
             const SizedBox(height: 20),
             TextField(
               controller: _nombreController,
@@ -77,15 +109,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 labelText: 'Nombre de usuario',
                 border: OutlineInputBorder(),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _bioController,
-              decoration: const InputDecoration(
-                labelText: 'Biografía',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
             ),
             const SizedBox(height: 16),
             TextField(
@@ -107,9 +130,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 16),
             TextField(
-              controller: _direccionController,
+              controller: _contrasenaController,
+              obscureText: true,
               decoration: const InputDecoration(
-                labelText: 'Dirección',
+                labelText: 'Nueva contraseña',
                 border: OutlineInputBorder(),
               ),
             ),
