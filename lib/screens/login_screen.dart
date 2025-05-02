@@ -15,43 +15,39 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  Future<void> iniciarSesion(String correo, String contrasena) async {
-    final supabase = Supabase.instance.client;
-    final contrasenaHash = sha256.convert(utf8.encode(contrasena)).toString();
+Future<void> iniciarSesion(String correo, String contrasena) async {
+  final supabase = Supabase.instance.client;
 
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    final response = await supabase.auth.signInWithPassword(
+      email: correo,
+      password: contrasena,
+    );
+
+    // Si llegamos aquí, el usuario fue autenticado
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Inicio de sesión exitoso')),
+    );
+    Navigator.pushReplacementNamed(context, '/menu');
+  } on AuthException catch (error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: ${error.message}')),
+    );
+  } catch (error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error inesperado: $error')),
+    );
+  } finally {
     setState(() {
-      _isLoading = true;
+      _isLoading = false;
     });
-
-    try {
-      final response = await supabase
-          .from('newusuarios')
-          .select()
-          .eq('correo', correo)
-          .eq('contrasena', contrasenaHash)
-          .maybeSingle();
-
-      if (response != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Inicio de sesión exitoso')),
-        );
-        // Aquí cambiamos a '/menu' y limpiamos historial
-        Navigator.pushReplacementNamed(context, '/menu');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Correo o contraseña incorrectos')),
-        );
-      }
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al iniciar sesión: $error')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
   }
+}
+
 
   void _onLoginPressed() {
     final correo = _emailController.text.trim();
