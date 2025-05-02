@@ -26,6 +26,7 @@ import 'screens/record_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/help_screen.dart';
 import 'screens/location_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   // Inicialización de Firebase (comentado temporalmente)
@@ -33,6 +34,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await FirebaseAuth.instance.signInAnonymously();
 
   await Supabase.initialize(
    url: 'https://mgbdvzesfyrzqdikalub.supabase.co', // URL de tu proyecto
@@ -64,7 +66,6 @@ class MyApp extends StatelessWidget {
         '/configuracion': (context) => ConfigurationScreen(),
         '/familia': (context) => FamilyScreen(),
         '/calendario': (context) => TableEvents(),
-        '/chat': (context) => ChatScreen(),
         '/alarma': (context) => AlarmScreen(),
         '/clinicas': (context) => ClinicListScreen(),
         '/location': (context) => MedicalMapScreen(),

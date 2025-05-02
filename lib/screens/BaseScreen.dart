@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'chat_screen.dart';
 class BaseScreen extends StatelessWidget {
   final Widget body;
   final int currentIndex;
@@ -89,7 +89,12 @@ class BaseScreen extends StatelessWidget {
         _navigateTo(context, '/location'); // Página del mapa
         break;
       case 2:
-        _navigateTo(context, '/chat'); // Página de chats
+        Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const ChatScreen(receiverName: 'Admin'),
+        ),
+      );
         break;
       case 3:
         _navigateTo(context, '/historial'); // Página de documentos
