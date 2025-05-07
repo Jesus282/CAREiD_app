@@ -114,12 +114,7 @@ class BaseScreen extends StatelessWidget {
         _navigateTo(context, '/location');
         break;
       case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const ChatListScreen(),
-          ),
-        );
+        _navigateTo(context, '/chat');
         break;
       case 3:
         _navigateTo(context, '/historial');

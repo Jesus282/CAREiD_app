@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'BaseScreen.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatListScreen extends StatefulWidget {
   final String receiverName;
 
-  const ChatScreen({super.key, required this.receiverName});
+  const ChatListScreen({super.key, required this.receiverName});
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  State<ChatListScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatListScreen> {
   final TextEditingController _messageController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -58,7 +61,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      const ChatScreen(receiverName: 'Admin'),
+                      const ChatListScreen(receiverName: 'Admin'),
                 ),
               );
             },
