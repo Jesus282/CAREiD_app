@@ -89,12 +89,7 @@ class BaseScreen extends StatelessWidget {
         _navigateTo(context, '/location'); // Página del mapa
         break;
       case 2:
-        Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const ChatScreen(receiverName: 'Admin'),
-        ),
-      );
+        _navigateTo(context, '/chat');
         break;
       case 3:
         _navigateTo(context, '/historial'); // Página de documentos
@@ -122,11 +117,7 @@ class BaseScreen extends StatelessWidget {
             title: const Text('Editar perfil de usuario'),
             onTap: () => _navigateTo(context, '/perfil'),
           ),
-          ListTile(
-            leading: const Icon(Icons.switch_account, color: Colors.blue),
-            title: const Text('Cambiar de cuenta'),
-            onTap: () => _navigateTo(context, '/contacto'),
-          ),
+          
           ListTile(
             leading: const Icon(Icons.family_restroom, color: Colors.blue),
             title: const Text('Ver y contactar con familia'),

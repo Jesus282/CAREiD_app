@@ -17,7 +17,6 @@ import 'screens/calendar_screen.dart';
 import 'screens/chat_screen.dart';
 import 'screens/alarm_screen.dart';
 import 'screens/clinic_list.dart';
-import 'screens/contact_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/mediclist_screen.dart';
 import 'screens/profilecosult_screen.dart';
@@ -65,11 +64,10 @@ class MyApp extends StatelessWidget {
         '/configuracion': (context) => ConfigurationScreen(),
         '/familia': (context) => FamilyScreen(),
         '/calendario': (context) => TableEvents(),
-        ////'/chat': (context) => ChatScreen(),
+        '/chat': (context) => ChatListScreen(),
         '/alarma': (context) => AlarmScreen(),
         '/clinicas': (context) => ClinicListScreen(),
         '/location': (context) => MedicalMapScreen(),
-        '/contacto': (context) => ContactScreen(),
         '/historial': (context) => UploadScreen(),
         '/medicamentos': (context) => MedicListScreen(),
         '/perfilconsulta': (context) => ConsultaScreen(),
