@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:convert';
-import 'package:crypto/crypto.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -15,39 +13,38 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-Future<void> iniciarSesion(String correo, String contrasena) async {
-  final supabase = Supabase.instance.client;
+  Future<void> iniciarSesion(String correo, String contrasena) async {
+    final supabase = Supabase.instance.client;
 
-  setState(() {
-    _isLoading = true;
-  });
-
-  try {
-    final response = await supabase.auth.signInWithPassword(
-      email: correo,
-      password: contrasena,
-    );
-
-    // Si llegamos aquí, el usuario fue autenticado
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Inicio de sesión exitoso')),
-    );
-    Navigator.pushReplacementNamed(context, '/menu');
-  } on AuthException catch (error) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: ${error.message}')),
-    );
-  } catch (error) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error inesperado: $error')),
-    );
-  } finally {
     setState(() {
-      _isLoading = false;
+      _isLoading = true;
     });
-  }
-}
 
+    try {
+      final response = await supabase.auth.signInWithPassword(
+        email: correo,
+        password: contrasena,
+      );
+
+      // Si llegamos aquí, el usuario fue autenticado
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Inicio de sesión exitoso')),
+      );
+      Navigator.pushReplacementNamed(context, '/menu');
+    } on AuthException catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${error.message}')),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error inesperado: $error')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   void _onLoginPressed() {
     final correo = _emailController.text.trim();
@@ -64,7 +61,7 @@ Future<void> iniciarSesion(String correo, String contrasena) async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 238, 245, 248),
+      backgroundColor: const Color(0xFFF0F4F8), // Un fondo claro para contraste
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -72,24 +69,39 @@ Future<void> iniciarSesion(String correo, String contrasena) async {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   "CAREiD",
-                  style: TextStyle(fontSize: 52, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 52,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0288D1), // Azul primario
+                  ),
                 ),
-                Image.asset("assets/Logop.png", height: 200), // Logo de la app
+                Image.asset("assets/Logop3.png", height: 200), // Logo de la app
                 const SizedBox(height: 30),
                 const Text(
                   "Iniciar Sesión",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0288D1), // Azul primario
+                  ),
                 ),
                 const SizedBox(height: 20),
                 TextField(
                   controller: _emailController,
                   decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.person),
+                    prefixIcon: const Icon(Icons.person, color: Color(0xFF0288D1)),
                     hintText: "Correo electrónico",
+                    hintStyle: TextStyle(color: Colors.black54),
+                    filled: true,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Color(0xFF0288D1)),
                     ),
                   ),
                 ),
@@ -98,10 +110,17 @@ Future<void> iniciarSesion(String correo, String contrasena) async {
                   controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.lock),
+                    prefixIcon: const Icon(Icons.lock, color: Color(0xFF0288D1)),
                     hintText: "Contraseña",
+                    hintStyle: TextStyle(color: Colors.black54),
+                    filled: true,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Color(0xFF0288D1)),
                     ),
                   ),
                 ),
@@ -110,7 +129,7 @@ Future<void> iniciarSesion(String correo, String contrasena) async {
                     ? const CircularProgressIndicator()
                     : ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: Color(0xFF0288D1), // Azul primario
                           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 80),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -127,7 +146,10 @@ Future<void> iniciarSesion(String correo, String contrasena) async {
                   onPressed: () {
                     Navigator.pushNamed(context, '/register');
                   },
-                  child: const Text("¿No tienes cuenta? Regístrate"),
+                  child: const Text(
+                    "¿No tienes cuenta? Regístrate",
+                    style: TextStyle(color: Color(0xFF0288D1)), // Azul primario
+                  ),
                 ),
               ],
             ),
@@ -137,4 +159,3 @@ Future<void> iniciarSesion(String correo, String contrasena) async {
     );
   }
 }
-

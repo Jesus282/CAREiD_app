@@ -1,76 +1,104 @@
+import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class TableEvents extends StatefulWidget {
-  const TableEvents({super.key});
+class CalendarScreen extends StatefulWidget {
+  const CalendarScreen({Key? key}) : super(key: key);
 
   @override
-  State<TableEvents> createState() => _TableEventsState();
+  _CalendarScreenState createState() => _CalendarScreenState();
 }
 
-class _TableEventsState extends State<TableEvents> {
-  late final ValueNotifier<List<Event>> _selectedEvents;
+class _CalendarScreenState extends State<CalendarScreen> {
+  late final ValueNotifier<List<Appointment>> _selectedAppointments;
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  
-  // 1. Definimos las variables de rango de fechas
-  final DateTime _firstDay = DateTime.now().subtract(const Duration(days: 365));
-  final DateTime _lastDay = DateTime.now().add(const Duration(days: 365));
-  
-  // 2. Creamos un mapa de eventos vacío
-  final Map<DateTime, List<Event>> _events = {};
+
+  final LinkedHashMap<DateTime, List<Appointment>> _appointmentsMap = LinkedHashMap(
+    equals: isSameDay,
+    hashCode: (DateTime key) => key.day * 1000000 + key.month * 10000 + key.year,
+  );
 
   @override
   void initState() {
     super.initState();
-    initializeDateFormatting();
     _selectedDay = _focusedDay;
-    
-    // 3. Inicializamos con eventos de ejemplo (opcional)
-    _addExampleEvents();
-    
-    _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
+    _fetchAppointments();
   }
 
-  // 4. Método para añadir eventos de ejemplo
-  void _addExampleEvents() {
-    final today = DateTime.now();
-    
-    _events[today] = [
-      Event('Consulta con el cardiólogo'),
-      Event('Revisión de análisis'),
-    ];
-    
-    _events[today.add(const Duration(days: 1))] = [
-      Event('Cita con el dentista'),
-    ];
-    
-    _events[today.add(const Duration(days: 3))] = [
-      Event('Control médico'),
-      Event('Fisioterapia'),
-    ];
+  // ───────────────────────────────────────────────────────────────
+  // Consultar citas desde Supabase
+  Future<void> _fetchAppointments() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+
+    if (user == null) return;
+
+    try {
+      final response = await supabase
+          .from('appointments') // Accede a la tabla 'appointments'
+          .select('*') // Selecciona todas las columnas
+          .eq('user_id', user.id) // Filtra por el 'user_id'
+          .order('date', ascending: true) // Ordena por fecha
+          .limit(100); // Agregar límite si es necesario
+
+      if (response.error != null) {
+        _showError('Error al cargar las citas: ${response.error!.message}');
+        return;
+      }
+
+      final List<dynamic> data = response as List<dynamic>; // Obtener los datos de la respuesta
+
+      // Mapeamos los datos a una lista de citas
+      final List<Appointment> appointments = data.map((item) {
+        return Appointment(
+          title: item['title'],
+          date: DateTime.parse(item['date']),
+        );
+      }).toList();
+
+      setState(() {
+        // Limpiar las citas del mapa
+        _appointmentsMap.clear();
+
+        // Agregar las citas al mapa por fecha
+        for (var appointment in appointments) {
+          final day = DateTime(appointment.date.year, appointment.date.month, appointment.date.day);
+          _appointmentsMap[day] = [..._appointmentsMap[day] ?? [], appointment];
+        }
+
+        _selectedAppointments = ValueNotifier(_getAppointmentsForDay(_selectedDay!));
+      });
+    } catch (e) {
+      _showError('Hubo un error al obtener las citas: $e');
+    }
   }
 
-  @override
-  void dispose() {
-    _selectedEvents.dispose();
-    super.dispose();
+  // ───────────────────────────────────────────────────────────────
+  // Obtener las citas para un día específico
+  List<Appointment> _getAppointmentsForDay(DateTime day) {
+    return _appointmentsMap[day] ?? [];
   }
 
-  List<Event> _getEventsForDay(DateTime day) {
-    return _events[day] ?? [];
-  }
-
+  // ───────────────────────────────────────────────────────────────
+  // Manejar la selección de un día en el calendario
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     if (!isSameDay(_selectedDay, selectedDay)) {
       setState(() {
         _selectedDay = selectedDay;
         _focusedDay = focusedDay;
       });
-      _selectedEvents.value = _getEventsForDay(selectedDay);
+      _selectedAppointments.value = _getAppointmentsForDay(selectedDay);
     }
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  // UI - Mostrar mensaje de error
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -78,56 +106,34 @@ class _TableEventsState extends State<TableEvents> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Calendario de Citas'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _showAddEventDialog,
-            tooltip: 'Agregar cita',
-          ),
-        ],
+        backgroundColor: Colors.blue[600],
       ),
       body: Column(
         children: [
-          TableCalendar<Event>(
-            firstDay: _firstDay,
-            lastDay: _lastDay,
+          TableCalendar<Appointment>(
+            firstDay: DateTime.now().subtract(const Duration(days: 365)),
+            lastDay: DateTime.now().add(const Duration(days: 365)),
             focusedDay: _focusedDay,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             calendarFormat: _calendarFormat,
-            eventLoader: _getEventsForDay,
-            startingDayOfWeek: StartingDayOfWeek.monday,
+            eventLoader: _getAppointmentsForDay,
+            onDaySelected: _onDaySelected,
+            onFormatChanged: (format) {
+              setState(() => _calendarFormat = format);
+            },
             calendarStyle: CalendarStyle(
               markerDecoration: BoxDecoration(
                 color: Colors.blueAccent,
                 shape: BoxShape.circle,
               ),
-              todayDecoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.3),
-                shape: BoxShape.circle,
-              ),
-              selectedDecoration: BoxDecoration(
-                color: Colors.blueAccent,
-                shape: BoxShape.circle,
-              ),
             ),
-            headerStyle: HeaderStyle(
-              formatButtonVisible: true,
-              titleCentered: true,
-            ),
-            onDaySelected: _onDaySelected,
-            onFormatChanged: (format) {
-              setState(() => _calendarFormat = format);
-            },
-            onPageChanged: (focusedDay) {
-              _focusedDay = focusedDay;
-            },
           ),
-          const SizedBox(height: 8.0),
+          const SizedBox(height: 8),
           Expanded(
-            child: ValueListenableBuilder<List<Event>>(
-              valueListenable: _selectedEvents,
-              builder: (context, events, _) {
-                return events.isEmpty
+            child: ValueListenableBuilder<List<Appointment>>(
+              valueListenable: _selectedAppointments,
+              builder: (context, appointments, _) {
+                return appointments.isEmpty
                     ? const Center(
                         child: Text(
                           'No hay citas para este día',
@@ -135,21 +141,13 @@ class _TableEventsState extends State<TableEvents> {
                         ),
                       )
                     : ListView.builder(
-                        itemCount: events.length,
+                        itemCount: appointments.length,
                         itemBuilder: (context, index) {
-                          return Card(
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 12.0,
-                              vertical: 4.0,
-                            ),
-                            child: ListTile(
-                              leading: const Icon(Icons.event, color: Colors.blue),
-                              title: Text(events[index].title),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _removeEvent(events[index], _selectedDay!),
-                              ),
-                            ),
+                          final appointment = appointments[index];
+                          return ListTile(
+                            leading: const Icon(Icons.medical_services, color: Colors.blue),
+                            title: Text(appointment.title),
+                            subtitle: Text(DateFormat('hh:mm a').format(appointment.date)),
                           );
                         },
                       );
@@ -158,114 +156,17 @@ class _TableEventsState extends State<TableEvents> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0, // Cambia esto dinámicamente si es necesario
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.pushReplacementNamed(context, '/menu');
-              break;
-            case 1:
-              Navigator.pushReplacementNamed(context, '/location');
-              break;
-            case 2:
-              Navigator.pushReplacementNamed(context, '/chat');
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menú',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.location_on),
-            label: 'Ubicación',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
-          ),
-        ],
-      ),
     );
-  }
-
-  // 5. Diálogo para agregar nuevos eventos
-  void _showAddEventDialog() async {
-    final titleController = TextEditingController();
-    DateTime selectedDate = _selectedDay ?? DateTime.now();
-
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: _firstDay,
-      lastDate: _lastDay,
-    );
-
-    if (pickedDate != null) {
-      selectedDate = pickedDate;
-      
-      await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Nueva Cita'),
-          content: TextField(
-            controller: titleController,
-            decoration: const InputDecoration(
-              labelText: 'Descripción de la cita',
-              hintText: 'Ej: Consulta médica',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (titleController.text.trim().isNotEmpty) {
-                  _addEvent(
-                    selectedDate,
-                    Event(titleController.text.trim()),
-                  );
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Guardar'),
-            ),
-          ],
-        ),
-      );
-    }
-  }
-
-  // 6. Método para agregar eventos
-  void _addEvent(DateTime day, Event event) {
-    setState(() {
-      if (_events[day] == null) {
-        _events[day] = [event];
-      } else {
-        _events[day]!.add(event);
-      }
-      _selectedEvents.value = _getEventsForDay(day);
-    });
-  }
-
-  // 7. Método para eliminar eventos
-  void _removeEvent(Event event, DateTime day) {
-    setState(() {
-      _events[day]?.remove(event);
-      _selectedEvents.value = _getEventsForDay(day);
-    });
   }
 }
 
-class Event {
+extension on PostgrestList {
+  get error => null;
+}
+
+class Appointment {
   final String title;
+  final DateTime date;
 
-  const Event(this.title);
-
-  @override
-  String toString() => title;
+  Appointment({required this.title, required this.date});
 }

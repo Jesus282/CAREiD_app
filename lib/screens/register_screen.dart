@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
-import 'package:flutter/services.dart'; // Import para manejar formatos de entrada
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
+
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
@@ -16,13 +19,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _contrasenaController = TextEditingController();
   final _confirmarContrasenaController = TextEditingController();
 
-  bool _isLoading = false; // Para mostrar un indicador de carga
+  bool _isLoading = false;
 
   Future<void> registrarUsuario() async {
     final supabase = Supabase.instance.client;
     final hashedPassword = sha256.convert(utf8.encode(_contrasenaController.text)).toString();
 
-    // --- Validación de campos ---
     if (_nombreController.text.isEmpty ||
         _correoController.text.isEmpty ||
         _telefonoController.text.isEmpty ||
@@ -34,7 +36,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // --- Validación de correo electrónico básico ---
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(_correoController.text)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -43,7 +44,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // --- Validación de teléfono (mínimo 10 dígitos) ---
     if (_telefonoController.text.length < 10) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('El número de teléfono debe tener al menos 10 dígitos')),
@@ -51,7 +51,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // --- Validación de longitud mínima de la contraseña ---
     if (_contrasenaController.text.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('La contraseña debe tener al menos 6 caracteres')),
@@ -59,63 +58,59 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // --- Confirmar contraseña ---
     if (_contrasenaController.text != _confirmarContrasenaController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Las contraseñas no coinciden')),
       );
       return;
     }
-    
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-    // 1. Crear el usuario en Auth
-    final AuthResponse response = await supabase.auth.signUp(
-      email: _correoController.text,
-      password: _contrasenaController.text,
-    );
+      final AuthResponse response = await supabase.auth.signUp(
+        email: _correoController.text,
+        password: _contrasenaController.text,
+      );
 
-    final user = response.user;
+      final user = response.user;
 
-    if (user == null) {
-      throw Exception("No se pudo registrar el usuario.");
-    }
+      if (user == null) {
+        throw Exception("No se pudo registrar el usuario.");
+      }
 
-    // 2. Insertar los datos adicionales en tu tabla 'newusuarios'
-    await supabase.from('newusuarios').insert({
-      'id': user.id,  // UUID asignado por Supabase Auth
-      'nombre': _nombreController.text,
-      'correo': _correoController.text,
-      'telefono': _telefonoController.text,
-      'contrasena': hashedPassword,
-    });
+      await supabase.from('newusuarios').insert({
+        'id': user.id,
+        'nombre': _nombreController.text,
+        'correo': _correoController.text,
+        'telefono': _telefonoController.text,
+        'contrasena': hashedPassword,
+      });
 
-    _nombreController.clear();
-    _correoController.clear();
-    _telefonoController.clear();
-    _contrasenaController.clear();
-    _confirmarContrasenaController.clear();
+      _nombreController.clear();
+      _correoController.clear();
+      _telefonoController.clear();
+      _contrasenaController.clear();
+      _confirmarContrasenaController.clear();
 
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('¡Registro exitoso!'),
-        content: Text('Tu cuenta ha sido creada correctamente.'),
-        actions: [
-          TextButton(
-            child: Text('Aceptar'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('¡Registro exitoso!'),
+          content: Text('Tu cuenta ha sido creada correctamente.'),
+          actions: [
+            TextButton(
+              child: Text('Aceptar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      );
 
-      // --- Navegar a /plan ---
       Navigator.pushReplacementNamed(context, '/plan');
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -137,102 +132,127 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: ListView(
             shrinkWrap: true,
             children: [
+              // Encabezado de registro con una fuente estilizada
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.blue[100],
+                  color: Color(0xFF0288D1), // Azul primario
                   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 ),
                 child: Text(
                   "Regístrate",
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(  // Usando una fuente moderna y amigable
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue,
+                    color: Colors.white, // Color blanco para el texto
                   ),
                   textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(height: 20),
+
+              // Campos de entrada con bordes redondeados y iconos
               TextField(
                 controller: _nombreController,
+                style: GoogleFonts.poppins(),
                 decoration: InputDecoration(
                   hintText: "Nombre",
+                  hintStyle: TextStyle(color: Colors.black54),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  prefixIcon: Icon(Icons.person),
+                  prefixIcon: Icon(Icons.person, color: Color(0xFF0288D1)),
                 ),
               ),
               const SizedBox(height: 15),
               TextField(
                 controller: _correoController,
+                style: GoogleFonts.poppins(),
                 decoration: InputDecoration(
                   hintText: "Correo electrónico",
+                  hintStyle: TextStyle(color: Colors.black54),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  prefixIcon: Icon(Icons.email),
+                  prefixIcon: Icon(Icons.email, color: Color(0xFF0288D1)),
                 ),
               ),
               const SizedBox(height: 15),
               TextField(
                 controller: _telefonoController,
-                keyboardType: TextInputType.number, // Teclado de números
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly], // Solo permite dígitos
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                style: GoogleFonts.poppins(),
                 decoration: InputDecoration(
                   hintText: "Teléfono",
+                  hintStyle: TextStyle(color: Colors.black54),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  prefixIcon: Icon(Icons.phone),
+                  prefixIcon: Icon(Icons.phone, color: Color(0xFF0288D1)),
                 ),
               ),
               const SizedBox(height: 15),
               TextField(
                 controller: _contrasenaController,
                 obscureText: true,
+                style: GoogleFonts.poppins(),
                 decoration: InputDecoration(
                   hintText: "Contraseña",
+                  hintStyle: TextStyle(color: Colors.black54),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  prefixIcon: Icon(Icons.lock),
+                  prefixIcon: Icon(Icons.lock, color: Color(0xFF0288D1)),
                 ),
               ),
               const SizedBox(height: 15),
               TextField(
                 controller: _confirmarContrasenaController,
                 obscureText: true,
+                style: GoogleFonts.poppins(),
                 decoration: InputDecoration(
                   hintText: "Confirmar contraseña",
+                  hintStyle: TextStyle(color: Colors.black54),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  prefixIcon: Icon(Icons.lock_outline),
+                  prefixIcon: Icon(Icons.lock_outline, color: Color(0xFF0288D1)),
                 ),
               ),
               const SizedBox(height: 20),
+
+              // Botón de registro estilizado
               _isLoading
                   ? Center(child: CircularProgressIndicator())
                   : ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: Color(0xFF0288D1), // Azul primario
                         padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 80),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(30),
                         ),
+                        shadowColor: Color(0xFF0288D1).withOpacity(0.4),
+                        elevation: 5,
                       ),
                       onPressed: registrarUsuario,
-                      child: const Text("Registrarse", style: TextStyle(fontSize: 18, color: Colors.white)),
+                      child: const Text(
+                        "Registrarse",
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
                     ),
               const SizedBox(height: 15),
+
+              // Opción de iniciar sesión
               TextButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/login');
                 },
-                child: const Text("¿Ya tienes cuenta? Inicia sesión"),
+                child: const Text(
+                  "¿Ya tienes cuenta? Inicia sesión",
+                  style: TextStyle(color: Color(0xFF0288D1)), // Azul primario
+                ),
               ),
             ],
           ),
@@ -241,6 +261,3 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
-
-
-

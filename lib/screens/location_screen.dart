@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:convert';
 
 class MedicalMapScreen extends StatefulWidget {
@@ -56,7 +57,7 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best,
       );
-      
+
       setState(() {
         _userLocation = LatLng(position.latitude, position.longitude);
       });
@@ -65,8 +66,7 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
         _moveToLocation(_userLocation!, zoom: 13);
       }
     } catch (e) {
-      print('Error obteniendo ubicación: $e');
-      _showErrorSnackbar('Error de ubicación: ${e.toString()}');
+      _showErrorSnackbar('Error al obtener ubicación: ${e.toString()}');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -78,8 +78,13 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
     if (_userLocation == null) return;
 
     setState(() => _isLoading = true);
-    
+
     try {
+      final connectivity = await Connectivity().checkConnectivity();
+      if (connectivity == ConnectivityResult.none) {
+        throw Exception('Sin conexión a Internet');
+      }
+
       final apiKey = 'pk.eyJ1IjoiamVzdXMyNiIsImEiOiJjbWEwd2x4ZmowMThoMmpweXU5YTVudnUyIn0.r9zqvJaVg_p1r1g7jQthcg';
       final proximity = '${_userLocation!.longitude},${_userLocation!.latitude}';
       final limit = 20;
@@ -95,16 +100,20 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
       );
 
       final response = await http.get(url);
-      
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+        final seen = <String>{};
+
         setState(() {
-          _medicalMarkers = (data['features'] as List).map((feature) {
+          _medicalMarkers = (data['features'] as List).where((feature) {
+            final id = feature['properties']['id'] ?? '';
+            return seen.add(id); // evita duplicados
+          }).map((feature) {
             final coords = feature['geometry']['coordinates'];
             final properties = feature['properties'];
             final name = properties['name'] ?? 'Centro Médico';
-            
+
             return Marker(
               point: LatLng(coords[1], coords[0]),
               width: 80,
@@ -113,7 +122,7 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.local_hospital, color: Colors.red, size: 40),
-                  Text(name, style: const TextStyle(fontSize: 12)),
+                  Flexible(child: Text(name, style: const TextStyle(fontSize: 12))),
                 ],
               ),
             );
@@ -124,10 +133,9 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
           _adjustMapToMarkers();
         }
       } else {
-        throw Exception('Error HTTP ${response.statusCode}: ${response.body}');
+        throw Exception('Error HTTP ${response.statusCode}');
       }
     } catch (e) {
-      print('Error en Category Search: $e');
       _showErrorSnackbar('Error al buscar hospitales: ${e.toString()}');
     } finally {
       if (mounted) {
@@ -152,18 +160,10 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
   }
 
   double _calculateZoomLevel(LatLngBounds bounds) {
-    // Cálculo simplificado del nivel de zoom
-    // Puedes ajustar esta lógica según tus necesidades
-    const double defaultZoom = 13.0;
     const double minZoom = 10.0;
     const double maxZoom = 16.0;
-    
-    final distance = const Distance().distance(
-      bounds.northWest,
-      bounds.southEast,
-    );
-    
-    // Ajuste empírico basado en la distancia
+    final distance = const Distance().distance(bounds.northWest, bounds.southEast);
+
     if (distance > 10000) return minZoom;
     if (distance > 5000) return 11.0;
     if (distance > 2000) return 12.0;
@@ -259,7 +259,7 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
               ],
             ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1, // Índice actual para la pantalla de ubicación
+        currentIndex: 1,
         onTap: (index) {
           switch (index) {
             case 0:
@@ -274,18 +274,9 @@ class _MedicalMapScreenState extends State<MedicalMapScreen> {
           }
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menú',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.location_on),
-            label: 'Ubicación',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menú'),
+          BottomNavigationBarItem(icon: Icon(Icons.location_on), label: 'Ubicación'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
         ],
       ),
     );

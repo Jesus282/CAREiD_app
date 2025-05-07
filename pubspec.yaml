@@ -4,6 +4,7 @@ publish_to: 'none'
 
 version: 1.0.0+1
 
+# Definir el SDK mínimo requerido para el proyecto
 environment:
   sdk: ^3.7.2
 
@@ -11,39 +12,47 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Firebase y Supabase
-  supabase_flutter: ^2.8.4
-  cloud_firestore: ^5.6.7
-  firebase_storage: 12.4.5
-  firebase_core: ^3.13.0
-  firebase_auth:
-  # Utilidades
-  provider: ^6.0.5
-  intl: ^0.20.2
-  crypto: ^3.0.0
-  flutter_animate: ^4.1.1+1
-  animation_list: ^3.1.0
-  cupertino_icons: ^1.0.8
-  image_picker: ^1.0.4
-  file_picker: ^6.1.1
-  http: 1.3.0
-  table_calendar: ^3.2.0
-  
+  # Dependencias para Firebase y Supabase
+  supabase_flutter: ^2.8.4        # Conexión a Supabase
+  cloud_firestore: ^5.6.7         # Firestore (Base de datos NoSQL de Firebase)
+  firebase_storage: 12.4.5       # Almacenamiento en Firebase
+  firebase_core: ^3.13.0         # Inicialización de Firebase
+  firebase_auth: 5.5.3          # Autenticación de Firebase
 
-  # Mapas
-  flutter_map: ^8.1.1
-  latlong2: ^0.9.1
-  mapbox_search: ^4.3.1
-  geolocator: ^11.0.0
+  # Utilidades para el desarrollo
+  provider: ^6.0.5               # Gestión de estado
+  intl: ^0.20.2                  # Internacionalización
+  crypto: ^3.0.0                 # Cifrado y hash (para contraseñas)
+  flutter_animate: ^4.1.1+1      # Animaciones en Flutter
+  animation_list: ^3.1.0         # Animaciones adicionales
+  cupertino_icons: ^1.0.8        # Iconos estilo iOS
+  image_picker: ^1.0.4           # Selección de imágenes
+  file_picker: ^6.1.1            # Selección de archivos
+  uuid: ^4.2.1                   # Generador de UUIDs
+  http: 1.3.0                    # Solicitudes HTTP
+  table_calendar: ^3.2.0         # Calendario en Flutter
+  path: ^1.9.0                   # Manejo de rutas de archivos
+  google_fonts: ^4.0.3           # Fuentes de Google Fonts
+
+  # Dependencias para mapas y localización
+  flutter_map: ^8.1.1            # Mapas en Flutter
+  latlong2: ^0.9.1               # Manipulación de coordenadas geográficas
+  mapbox_search: ^4.3.1          # Búsqueda en Mapbox
+  geolocator: ^11.0.0            # Geolocalización
+  connectivity_plus: ^6.1.4      # Verificar conectividad de red
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  # Linting para mejorar la calidad del código
   flutter_lints: ^5.0.0
 
 flutter:
+  # Usar diseño basado en Material Design
   uses-material-design: true
 
+  # Declaración de assets (archivos estáticos que el proyecto usa)
   assets:
-    - assets/Logop.png
-    - assets/fondo.jpg
+    - assets/Logop3.png        # Logo de la app
+    - assets/fondo.jpg         # Fondo para pantallas de la app

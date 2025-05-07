@@ -1,33 +1,57 @@
 import 'package:flutter/material.dart';
-import 'package:login/screens/BaseScreen.dart';
-import 'package:login/Actions/utils.dart' show Appointment, CalendarScreen;
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'package:login/screens/BaseScreen.dart';
 import 'package:login/screens/profilecosult_screen.dart';
 
-class MenuScreen extends StatefulWidget {
-  const MenuScreen({Key? key}) : super(key: key);
-
-  @override
-  State<MenuScreen> createState() => _MenuScreenState();
-}
-
+// ───────────────────────────────────────────────────────────────
+// Clase de cita médica
 class Appointment {
   final String id;
   final String title;
   final DateTime date;
+  final String userId;
 
   Appointment({
     required this.id,
     required this.title,
     required this.date,
+    required this.userId,
   });
+
+  factory Appointment.fromMap(Map<String, dynamic> map) {
+    return Appointment(
+      id: map['id'],
+      title: map['title'],
+      date: DateTime.parse(map['date']),
+      userId: map['user_id'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'date': date.toIso8601String(),
+      'user_id': userId,
+    };
+  }
+}
+
+// ───────────────────────────────────────────────────────────────
+// Pantalla principal de menú con citas
+class MenuScreen extends StatefulWidget {
+  const MenuScreen({super.key});
+
+  @override
+  State<MenuScreen> createState() => _MenuScreenState();
 }
 
 class _MenuScreenState extends State<MenuScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Appointment> medicalAppointments = [];
-  int _currentBottomNavIndex = 0;
+  final int _currentBottomNavIndex = 0;
 
   @override
   void initState() {
@@ -35,6 +59,8 @@ class _MenuScreenState extends State<MenuScreen> {
     _loadAppointments();
   }
 
+  // ───────────────────────────────────────────────────────────────
+  // Cargar citas del usuario actual
   Future<void> _loadAppointments() async {
     final supabase = Supabase.instance.client;
     final user = supabase.auth.currentUser;
@@ -48,173 +74,118 @@ class _MenuScreenState extends State<MenuScreen> {
 
     setState(() {
       medicalAppointments = response
-          .map<Appointment>((data) => Appointment(
-                id: data['id'].toString(),
-                title: data['title'],
-                date: DateTime.parse(data['date']),
-              ))
+          .map<Appointment>((data) => Appointment.fromMap(data))
           .toList();
     });
   }
 
-  void _navigateToConsultaScreen() async {
-  final result = await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => const ConsultaScreen(),
-    ),
-  );
+  // ───────────────────────────────────────────────────────────────
+  // Crear nueva cita desde pantalla de consulta
+  Future<void> _navigateToConsultaScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ConsultaScreen()),
+    );
 
-  if (result != null && result is Map<String, dynamic>) {
-    final supabase = Supabase.instance.client;
-    final user = supabase.auth.currentUser;
-    if (user == null) return;
+    if (result != null && result is Map<String, dynamic>) {
+      final supabase = Supabase.instance.client;
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
 
-    final doctor = result['doctor'] as String;
-    final purpose = result['purpose'] as String;
-    final datetime = result['datetime'] as DateTime;
+      final doctor = result['doctor'] as String;
+      final purpose = result['purpose'] as String;
+      final datetime = result['datetime'] as DateTime;
 
-    try {
-      final response = await supabase.from('appointments').insert({
-        'title': '$doctor - $purpose',
-        'date': datetime.toIso8601String(),
-        'user_id': user.id,
-      }).select();
+      try {
+        final response = await supabase.from('appointments').insert({
+          'title': '$doctor - $purpose',
+          'date': datetime.toIso8601String(),
+          'user_id': user.id,
+        }).select();
 
-      final inserted = response.first;
-
-      setState(() {
-        medicalAppointments.insert(
-          0,
-          Appointment(
-            id: inserted['id'].toString(),
-            title: '$doctor - $purpose',
-            date: datetime,
-          ),
-        );
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar la cita: $e')),
-      );
-    }
-  }
-}
-
-
-  Future<void> _addNewAppointment(TextEditingController controller) async {
-    final appointmentText = controller.text.trim();
-    if (appointmentText.isEmpty) return;
-
-    final supabase = Supabase.instance.client;
-    final user = supabase.auth.currentUser;
-    if (user == null) return;
-
-    final now = DateTime.now();
-
-    try {
-      final response = await supabase.from('appointments').insert({
-        'title': appointmentText,
-        'date': now.toIso8601String(),
-        'user_id': user.id,
-      }).select();
-
-      final inserted = response.first;
-
-      setState(() {
-        medicalAppointments.insert(
-          0,
-          Appointment(
-            id: inserted['id'].toString(),
-            title: appointmentText,
-            date: now,
-          ),
-        );
-      });
-
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar la cita: $e')),
-      );
+        final inserted = response.first;
+        setState(() {
+          medicalAppointments.insert(0, Appointment.fromMap(inserted));
+        });
+      } catch (e) {
+        _showSnackBar('Error al guardar la cita: $e');
+      }
     }
   }
 
-  Future<void> _deleteAppointment(String appointmentId, int index) async {
-    final supabase = Supabase.instance.client;
-    try {
-      await supabase.from('appointments').delete().eq('id', appointmentId);
-      setState(() {
-        medicalAppointments.removeAt(index);
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al eliminar cita: $e')),
-      );
-    }
-  }
-
-void _showEditAppointmentDialog(Appointment appointment, int index) async {
-  final result = await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ConsultaScreen(
-        initialDoctor: appointment.title, // Asumimos que `title` es el nombre del médico o propósito
-        initialDateTime: appointment.date,
-      ),
-    ),
-  );
-
-  if (result != null && result is Map<String, dynamic>) {
-    final updatedTitle = result['purpose']; // o usa 'doctor' si prefieres
-    final updatedDateTime = result['datetime'];
-
-    final supabase = Supabase.instance.client;
-    try {
-      await supabase.from('appointments').update({
-        'title': updatedTitle,
-        'date': updatedDateTime.toIso8601String(),
-      }).eq('id', appointment.id);
-
-      setState(() {
-        medicalAppointments[index] = Appointment(
-          id: appointment.id,
-          title: updatedTitle,
-          date: updatedDateTime,
-        );
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al editar cita: $e')),
-      );
-    }
-  }
-}
-
-
-  Widget _buildAppointmentDialog(TextEditingController controller) {
-    return AlertDialog(
-      title: const Text('Agendar Nueva Cita'),
-      content: TextField(
-        controller: controller,
-        decoration: const InputDecoration(
-          hintText: 'Ej: Consulta con Cardiología',
-          labelText: 'Nombre de la cita',
+  // ───────────────────────────────────────────────────────────────
+  // Editar cita existente
+  Future<void> _showEditAppointmentDialog(Appointment appointment, int index) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ConsultaScreen(
+          initialDoctor: appointment.title,
+          initialDateTime: appointment.date,
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('CANCELAR'),
-        ),
-        ElevatedButton(
-          onPressed: () => _addNewAppointment(controller),
-          child: const Text('AGREGAR'),
-        ),
-      ],
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      final doctor = result['doctor'] as String;
+      final purpose = result['purpose'] as String;
+      final updatedDateTime = result['datetime'] as DateTime;
+      final updatedTitle = '$doctor - $purpose';
+
+      try {
+        await Supabase.instance.client.from('appointments').update({
+          'title': updatedTitle,
+          'date': updatedDateTime.toIso8601String(),
+        }).eq('id', appointment.id);
+
+        setState(() {
+          medicalAppointments[index] = Appointment(
+            id: appointment.id,
+            title: updatedTitle,
+            date: updatedDateTime,
+            userId: appointment.userId,
+          );
+        });
+      } catch (e) {
+        _showSnackBar('Error al editar cita: $e');
+      }
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  // Eliminar cita
+  Future<void> _deleteAppointment(String id, int index) async {
+    try {
+      await Supabase.instance.client.from('appointments').delete().eq('id', id);
+      setState(() => medicalAppointments.removeAt(index));
+    } catch (e) {
+      _showSnackBar('Error al eliminar cita: $e');
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  // Utilidad para mostrar mensajes
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  // ───────────────────────────────────────────────────────────────
+  // UI - Estado vacío
+  Widget _buildEmptyState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.calendar_today, size: 64, color: Colors.grey),
+          SizedBox(height: 16),
+          Text('No tienes citas programadas'),
+        ],
+      ),
     );
   }
 
+  // ───────────────────────────────────────────────────────────────
+  // UI - Cuerpo principal
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -224,12 +195,12 @@ void _showEditAppointmentDialog(Appointment appointment, int index) async {
         body: medicalAppointments.isEmpty
             ? _buildEmptyState()
             : ListView.builder(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16),
                 itemCount: medicalAppointments.length,
-                itemBuilder: (context, index) {
+                itemBuilder: (_, index) {
                   final appointment = medicalAppointments[index];
                   return Card(
-                    margin: const EdgeInsets.only(bottom: 16.0),
+                    margin: const EdgeInsets.only(bottom: 16),
                     child: ListTile(
                       leading: const CircleAvatar(
                         backgroundColor: Colors.blueAccent,
@@ -244,13 +215,11 @@ void _showEditAppointmentDialog(Appointment appointment, int index) async {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () =>
-                                _showEditAppointmentDialog(appointment, index),
+                            onPressed: () => _showEditAppointmentDialog(appointment, index),
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () =>
-                                _deleteAppointment(appointment.id, index),
+                            onPressed: () => _deleteAppointment(appointment.id, index),
                           ),
                         ],
                       ),
@@ -260,24 +229,9 @@ void _showEditAppointmentDialog(Appointment appointment, int index) async {
               ),
       ),
       floatingActionButton: FloatingActionButton(
-  onPressed: _navigateToConsultaScreen,
-  child: const Icon(Icons.add),
-),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.calendar_today, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text('No tienes citas programadas'),
-        ],
+        onPressed: _navigateToConsultaScreen,
+        child: const Icon(Icons.add),
       ),
     );
   }
 }
-
-
