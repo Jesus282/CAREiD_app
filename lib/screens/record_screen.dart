@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class DocumentListScreen extends StatefulWidget {
+  const DocumentListScreen({super.key});
+
   @override
   _DocumentListScreenState createState() => _DocumentListScreenState();
 }
@@ -12,8 +14,8 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
     return List<Color>.generate(count, (index) {
       final t = index / (count - 1 == 0 ? 1 : count - 1); // evita división entre cero
       return Color.lerp(
-        Color(0xFFE0F7FA), // azul muy claro
-        Color(0xFF0288D1), // azul fuerte
+        Color(0xFFBBDEFB), // Azul claro
+        Color(0xFF1976D2), // Azul intenso
         t,
       )!;
     });
@@ -42,28 +44,44 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Archivos Subidos'),
-        backgroundColor: const Color.fromARGB(255, 129, 221, 224),
+        backgroundColor: Color(0xFF2196F3), // Azul más vibrante
+        elevation: 4,
+        centerTitle: true,
       ),
       body: ListView.builder(
         itemCount: documentTitles.length,
         itemBuilder: (context, index) {
-          return Container(
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: colors[index],
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: const [
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: Offset(2, 2),
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
                 ),
               ],
             ),
-            child: Text(
-              documentTitles[index],
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            child: Row(
+              children: [
+                Icon(Icons.document_scanner, color: Colors.white, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    documentTitles[index],
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
           );
         },
@@ -76,6 +94,9 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
           });
           _onBottomNavTapped(index);
         },
+        backgroundColor: Color(0xFF2196F3), // Azul del fondo
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white70,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.menu),

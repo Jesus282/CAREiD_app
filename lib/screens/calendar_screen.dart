@@ -15,11 +15,9 @@ class _TableEventsState extends State<TableEvents> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   
-  // 1. Definimos las variables de rango de fechas
   final DateTime _firstDay = DateTime.now().subtract(const Duration(days: 365));
   final DateTime _lastDay = DateTime.now().add(const Duration(days: 365));
   
-  // 2. Creamos un mapa de eventos vacío
   final Map<DateTime, List<Event>> _events = {};
 
   @override
@@ -27,14 +25,10 @@ class _TableEventsState extends State<TableEvents> {
     super.initState();
     initializeDateFormatting();
     _selectedDay = _focusedDay;
-    
-    // 3. Inicializamos con eventos de ejemplo (opcional)
     _addExampleEvents();
-    
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
   }
 
-  // 4. Método para añadir eventos de ejemplo
   void _addExampleEvents() {
     final today = DateTime.now();
     
@@ -78,6 +72,7 @@ class _TableEventsState extends State<TableEvents> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Calendario de Citas'),
+        backgroundColor: Colors.blue[600],
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -106,13 +101,21 @@ class _TableEventsState extends State<TableEvents> {
                 shape: BoxShape.circle,
               ),
               selectedDecoration: BoxDecoration(
-                color: Colors.blueAccent,
+                color: Colors.blue[700],
                 shape: BoxShape.circle,
               ),
             ),
             headerStyle: HeaderStyle(
               formatButtonVisible: true,
               titleCentered: true,
+              leftChevronIcon: Icon(
+                Icons.chevron_left,
+                color: Colors.blue[600],
+              ),
+              rightChevronIcon: Icon(
+                Icons.chevron_right,
+                color: Colors.blue[600],
+              ),
             ),
             onDaySelected: _onDaySelected,
             onFormatChanged: (format) {
@@ -142,6 +145,10 @@ class _TableEventsState extends State<TableEvents> {
                               horizontal: 12.0,
                               vertical: 4.0,
                             ),
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                             child: ListTile(
                               leading: const Icon(Icons.event, color: Colors.blue),
                               title: Text(events[index].title),
@@ -159,7 +166,7 @@ class _TableEventsState extends State<TableEvents> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0, // Cambia esto dinámicamente si es necesario
+        currentIndex: 0,
         onTap: (index) {
           switch (index) {
             case 0:
@@ -187,11 +194,13 @@ class _TableEventsState extends State<TableEvents> {
             label: 'Chat',
           ),
         ],
+        selectedItemColor: Colors.blue[600],
+        unselectedItemColor: Colors.blue[300],
+        backgroundColor: Colors.white,
       ),
     );
   }
 
-  // 5. Diálogo para agregar nuevos eventos
   void _showAddEventDialog() async {
     final titleController = TextEditingController();
     DateTime selectedDate = _selectedDay ?? DateTime.now();
@@ -240,7 +249,6 @@ class _TableEventsState extends State<TableEvents> {
     }
   }
 
-  // 6. Método para agregar eventos
   void _addEvent(DateTime day, Event event) {
     setState(() {
       if (_events[day] == null) {
@@ -252,7 +260,6 @@ class _TableEventsState extends State<TableEvents> {
     });
   }
 
-  // 7. Método para eliminar eventos
   void _removeEvent(Event event, DateTime day) {
     setState(() {
       _events[day]?.remove(event);

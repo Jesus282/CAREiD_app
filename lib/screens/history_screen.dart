@@ -83,9 +83,10 @@ class _UploadScreenState extends State<UploadScreen> {
       backgroundColor: const Color(0xFFF2FBFF),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
                 'Historial Médico',
@@ -95,12 +96,21 @@ class _UploadScreenState extends State<UploadScreen> {
                   color: Color(0xFF0277BD),
                 ),
               ),
+              const SizedBox(height: 24),
               Container(
                 height: 180,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
                   color: Colors.lightBlue[100],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blueAccent.withOpacity(0.3),
+                      spreadRadius: 3,
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Center(
                   child: isUploading
@@ -120,6 +130,7 @@ class _UploadScreenState extends State<UploadScreen> {
                         ),
                 ),
               ),
+              const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: goToDocumentList,
                 icon: const Icon(Icons.folder_open),
