@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 class ChatScreen extends StatefulWidget {
   final String receiverName;
 
-  const ChatScreen({Key? key, required this.receiverName}) : super(key: key);
+  const ChatScreen({super.key, required this.receiverName});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();

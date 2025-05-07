@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:login/screens/BaseScreen.dart';
 import 'package:login/screens/profilecosult_screen.dart';
+import 'package:login/screens/calendar_screen.dart'; // ← NUEVO IMPORT
 
 // ───────────────────────────────────────────────────────────────
 // Clase de cita médica
@@ -59,8 +60,6 @@ class _MenuScreenState extends State<MenuScreen> {
     _loadAppointments();
   }
 
-  // ───────────────────────────────────────────────────────────────
-  // Cargar citas del usuario actual
   Future<void> _loadAppointments() async {
     final supabase = Supabase.instance.client;
     final user = supabase.auth.currentUser;
@@ -79,8 +78,6 @@ class _MenuScreenState extends State<MenuScreen> {
     });
   }
 
-  // ───────────────────────────────────────────────────────────────
-  // Crear nueva cita desde pantalla de consulta
   Future<void> _navigateToConsultaScreen() async {
     final result = await Navigator.push(
       context,
@@ -113,8 +110,6 @@ class _MenuScreenState extends State<MenuScreen> {
     }
   }
 
-  // ───────────────────────────────────────────────────────────────
-  // Editar cita existente
   Future<void> _showEditAppointmentDialog(Appointment appointment, int index) async {
     final result = await Navigator.push(
       context,
@@ -152,8 +147,6 @@ class _MenuScreenState extends State<MenuScreen> {
     }
   }
 
-  // ───────────────────────────────────────────────────────────────
-  // Eliminar cita
   Future<void> _deleteAppointment(String id, int index) async {
     try {
       await Supabase.instance.client.from('appointments').delete().eq('id', id);
@@ -163,14 +156,10 @@ class _MenuScreenState extends State<MenuScreen> {
     }
   }
 
-  // ───────────────────────────────────────────────────────────────
-  // Utilidad para mostrar mensajes
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  // ───────────────────────────────────────────────────────────────
-  // UI - Estado vacío
   Widget _buildEmptyState() {
     return const Center(
       child: Column(
@@ -184,11 +173,28 @@ class _MenuScreenState extends State<MenuScreen> {
     );
   }
 
-  // ───────────────────────────────────────────────────────────────
-  // UI - Cuerpo principal
+  void _goToCalendarScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TableEvents(appointments: medicalAppointments),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Tus citas'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month),
+            tooltip: 'Ver calendario',
+            onPressed: _goToCalendarScreen,
+          ),
+        ],
+      ),
       body: BaseScreen(
         scaffoldKey: _scaffoldKey,
         currentIndex: _currentBottomNavIndex,

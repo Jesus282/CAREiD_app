@@ -1,104 +1,45 @@
-import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({Key? key}) : super(key: key);
+// Importa tu clase Appointment desde donde la tengas definida
+import 'package:login/screens/menu_screen.dart'; // Asegúrate que este import apunte al archivo correcto
+
+class TableEvents extends StatefulWidget {
+  final List<Appointment> appointments;
+
+  const TableEvents({Key? key, required this.appointments}) : super(key: key);
 
   @override
-  _CalendarScreenState createState() => _CalendarScreenState();
+  State<TableEvents> createState() => _TableEventsState();
 }
 
-class _CalendarScreenState extends State<CalendarScreen> {
-  late final ValueNotifier<List<Appointment>> _selectedAppointments;
-  CalendarFormat _calendarFormat = CalendarFormat.month;
+class _TableEventsState extends State<TableEvents> {
+  late Map<DateTime, List<Appointment>> _events;
+  DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
-
-  final LinkedHashMap<DateTime, List<Appointment>> _appointmentsMap = LinkedHashMap(
-    equals: isSameDay,
-    hashCode: (DateTime key) => key.day * 1000000 + key.month * 10000 + key.year,
-  );
 
   @override
   void initState() {
     super.initState();
-    _selectedDay = _focusedDay;
-    _fetchAppointments();
+    _events = _groupAppointments(widget.appointments);
   }
 
-  // ───────────────────────────────────────────────────────────────
-  // Consultar citas desde Supabase
-  Future<void> _fetchAppointments() async {
-    final supabase = Supabase.instance.client;
-    final user = supabase.auth.currentUser;
-
-    if (user == null) return;
-
-    try {
-      final response = await supabase
-          .from('appointments') // Accede a la tabla 'appointments'
-          .select('*') // Selecciona todas las columnas
-          .eq('user_id', user.id) // Filtra por el 'user_id'
-          .order('date', ascending: true) // Ordena por fecha
-          .limit(100); // Agregar límite si es necesario
-
-      if (response.error != null) {
-        _showError('Error al cargar las citas: ${response.error!.message}');
-        return;
+  Map<DateTime, List<Appointment>> _groupAppointments(List<Appointment> appointments) {
+    final Map<DateTime, List<Appointment>> data = {};
+    for (final appt in appointments) {
+      final day = DateTime.utc(appt.date.year, appt.date.month, appt.date.day);
+      if (data[day] == null) {
+        data[day] = [appt];
+      } else {
+        data[day]!.add(appt);
       }
-
-      final List<dynamic> data = response as List<dynamic>; // Obtener los datos de la respuesta
-
-      // Mapeamos los datos a una lista de citas
-      final List<Appointment> appointments = data.map((item) {
-        return Appointment(
-          title: item['title'],
-          date: DateTime.parse(item['date']),
-        );
-      }).toList();
-
-      setState(() {
-        // Limpiar las citas del mapa
-        _appointmentsMap.clear();
-
-        // Agregar las citas al mapa por fecha
-        for (var appointment in appointments) {
-          final day = DateTime(appointment.date.year, appointment.date.month, appointment.date.day);
-          _appointmentsMap[day] = [..._appointmentsMap[day] ?? [], appointment];
-        }
-
-        _selectedAppointments = ValueNotifier(_getAppointmentsForDay(_selectedDay!));
-      });
-    } catch (e) {
-      _showError('Hubo un error al obtener las citas: $e');
     }
+    return data;
   }
 
-  // ───────────────────────────────────────────────────────────────
-  // Obtener las citas para un día específico
   List<Appointment> _getAppointmentsForDay(DateTime day) {
-    return _appointmentsMap[day] ?? [];
-  }
-
-  // ───────────────────────────────────────────────────────────────
-  // Manejar la selección de un día en el calendario
-  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
-    if (!isSameDay(_selectedDay, selectedDay)) {
-      setState(() {
-        _selectedDay = selectedDay;
-        _focusedDay = focusedDay;
-      });
-      _selectedAppointments.value = _getAppointmentsForDay(selectedDay);
-    }
-  }
-
-  // ───────────────────────────────────────────────────────────────
-  // UI - Mostrar mensaje de error
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    return _events[DateTime.utc(day.year, day.month, day.day)] ?? [];
   }
 
   @override
@@ -106,67 +47,48 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Calendario de Citas'),
-        backgroundColor: Colors.blue[600],
       ),
       body: Column(
         children: [
-          TableCalendar<Appointment>(
-            firstDay: DateTime.now().subtract(const Duration(days: 365)),
-            lastDay: DateTime.now().add(const Duration(days: 365)),
+          TableCalendar(
+            firstDay: DateTime.utc(2020, 1, 1),
+            lastDay: DateTime.utc(2030, 12, 31),
             focusedDay: _focusedDay,
-            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            calendarFormat: _calendarFormat,
+            calendarFormat: CalendarFormat.month,
+            startingDayOfWeek: StartingDayOfWeek.monday,
             eventLoader: _getAppointmentsForDay,
-            onDaySelected: _onDaySelected,
-            onFormatChanged: (format) {
-              setState(() => _calendarFormat = format);
+            selectedDayPredicate: (day) => isSameDay(day, _selectedDay),
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
             },
-            calendarStyle: CalendarStyle(
-              markerDecoration: BoxDecoration(
-                color: Colors.blueAccent,
-                shape: BoxShape.circle,
-              ),
-            ),
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: ValueListenableBuilder<List<Appointment>>(
-              valueListenable: _selectedAppointments,
-              builder: (context, appointments, _) {
-                return appointments.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'No hay citas para este día',
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: appointments.length,
-                        itemBuilder: (context, index) {
-                          final appointment = appointments[index];
-                          return ListTile(
-                            leading: const Icon(Icons.medical_services, color: Colors.blue),
-                            title: Text(appointment.title),
-                            subtitle: Text(DateFormat('hh:mm a').format(appointment.date)),
-                          );
-                        },
-                      );
-              },
-            ),
+            child: _buildAppointmentList(),
           ),
         ],
       ),
     );
   }
-}
 
-extension on PostgrestList {
-  get error => null;
-}
-
-class Appointment {
-  final String title;
-  final DateTime date;
-
-  Appointment({required this.title, required this.date});
+  Widget _buildAppointmentList() {
+    final appointments = _getAppointmentsForDay(_selectedDay);
+    if (appointments.isEmpty) {
+      return const Center(child: Text('No hay citas para este día'));
+    }
+    return ListView.builder(
+      itemCount: appointments.length,
+      itemBuilder: (_, index) {
+        final appointment = appointments[index];
+        return ListTile(
+          leading: const Icon(Icons.calendar_today),
+          title: Text(appointment.title),
+          subtitle: Text(DateFormat('dd/MM/yyyy HH:mm').format(appointment.date)),
+        );
+      },
+    );
+  }
 }
