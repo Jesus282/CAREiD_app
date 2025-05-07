@@ -77,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Color(0xFF0288D1), // Azul primario
                   ),
                 ),
-                Image.asset("assets/Logop.png", height: 200), // Logo de la app
+                Image.asset("assets/Logop3.png", height: 200), // Logo de la app
                 const SizedBox(height: 30),
                 const Text(
                   "Iniciar Sesión",

@@ -27,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Logo animado con efecto de rebote
-            Image.asset("assets/fondo.jpg", height: 100)
+            Image.asset("assets/logop3.png", height: 100)
                 .animate()
                 .fadeIn(duration: 800.ms)
                 .scale(
