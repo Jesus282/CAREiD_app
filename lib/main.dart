@@ -87,7 +87,7 @@ class MyApp extends StatelessWidget {
           final args = settings.arguments as Map<String, dynamic>;
           return MaterialPageRoute(
             builder: (context) {
-              return ChatScreen(receiverName: args['receiverName']);
+              return ChatListScreen(receiverName: args['receiverName']);
             },
           );
         }
