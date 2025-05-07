@@ -63,7 +63,7 @@ class MyApp extends StatelessWidget {
         '/menu': (context) => MenuScreen(),
         '/configuracion': (context) => ConfigurationScreen(),
         '/familia': (context) => FamilyScreen(),
-        '/calendario': (context) => TableEvents(),
+        '/calendario': (context) => CalendarScreen(),
         '/chat': (context) => ChatListScreen(),
         '/alarma': (context) => AlarmScreen(),
         '/clinicas': (context) => ClinicListScreen(),

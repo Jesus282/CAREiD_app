@@ -117,7 +117,7 @@ class BaseScreen extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const ChatScreen(receiverName: 'Admin'),
+            builder: (_) => const ChatListScreen(),
           ),
         );
         break;
