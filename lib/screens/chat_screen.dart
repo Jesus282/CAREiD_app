@@ -25,8 +25,8 @@ class _ChatScreenState extends State<ChatScreen> {
       'text': text,
       'sender': currentUser.email ?? 'Anónimo',
       'receiver': widget.receiverName,
-      'Tiempo': FieldValue.serverTimestamp(),
-      'read': false, // Para uso futuro de estado "leído"
+      'timestamp': FieldValue.serverTimestamp(),
+      'read': false,
     });
 
     _messageController.clear();
@@ -46,7 +46,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('messages')
-                  .orderBy('Tiempo', descending: false)
+                  .orderBy('timestamp', descending: false)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
@@ -73,11 +73,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     final sender = msg['sender'] ?? '';
                     final isMe = sender == currentUserEmail;
 
-                    final Timestamp? timestamp = msg['Tiempo'];
+                    final Timestamp? timestamp = msg['timestamp'];
                     final dateTime = timestamp?.toDate();
                     final timeFormatted = dateTime != null
                         ? DateFormat('hh:mm a').format(dateTime)
                         : 'Enviando...';
+
+                    // DEBUG
+                    print("Mensaje de $sender a ${msg['receiver']}: $text");
 
                     return Align(
                       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,

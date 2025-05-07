@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; 
+import 'firebase_options.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart'; // Conexión BD
 
@@ -22,7 +22,7 @@ import 'screens/history_screen.dart';
 import 'screens/mediclist_screen.dart';
 import 'screens/profilecosult_screen.dart';
 import 'screens/profile_screen.dart';
-import 'screens/record_screen.dart'; 
+import 'screens/record_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/help_screen.dart';
 import 'screens/location_screen.dart';
@@ -67,8 +67,6 @@ class MyApp extends StatelessWidget {
         '/menu': (context) => MenuScreen(),
         '/configuracion': (context) => ConfigurationScreen(),
         '/familia': (context) => FamilyScreen(),
-        // '/calendario': (context) => TableEvents(), ❌ ELIMINADA porque necesita argumentos
-        '/chat': (context) => ChatScreen(),
         '/alarma': (context) => AlarmScreen(),
         '/clinicas': (context) => ClinicListScreen(),
         '/location': (context) => MedicalMapScreen(),
@@ -82,6 +80,19 @@ class MyApp extends StatelessWidget {
         '/plan': (context) => PlanScreen(),
         '/error': (context) => FailureScreen(),
         '/ayuda': (context) => HelpScreen(),
+      },
+      // Manejo de rutas con argumentos como receiverName
+      onGenerateRoute: (settings) {
+        if (settings.name == '/chat') {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) {
+              return ChatScreen(receiverName: args['receiverName']);
+            },
+          );
+        }
+
+        return null;
       },
     );
   }
