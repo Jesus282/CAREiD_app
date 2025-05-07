@@ -17,7 +17,7 @@ dependencies:
   cloud_firestore: ^5.6.7         # Firestore (Base de datos NoSQL de Firebase)
   firebase_storage: 12.4.5       # Almacenamiento en Firebase
   firebase_core: ^3.13.0         # Inicialización de Firebase
-  firebase_auth: ^3.5.0          # Autenticación de Firebase
+  firebase_auth: 5.5.3          # Autenticación de Firebase
 
   # Utilidades para el desarrollo
   provider: ^6.0.5               # Gestión de estado

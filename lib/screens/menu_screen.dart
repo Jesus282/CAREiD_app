@@ -5,19 +5,47 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:login/screens/BaseScreen.dart';
 import 'package:login/screens/profilecosult_screen.dart';
 
+// ───────────────────────────────────────────────────────────────
+// Clase de cita médica
+class Appointment {
+  final String id;
+  final String title;
+  final DateTime date;
+  final String userId;
+
+  Appointment({
+    required this.id,
+    required this.title,
+    required this.date,
+    required this.userId,
+  });
+
+  factory Appointment.fromMap(Map<String, dynamic> map) {
+    return Appointment(
+      id: map['id'],
+      title: map['title'],
+      date: DateTime.parse(map['date']),
+      userId: map['user_id'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'date': date.toIso8601String(),
+      'user_id': userId,
+    };
+  }
+}
+
+// ───────────────────────────────────────────────────────────────
+// Pantalla principal de menú con citas
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
 
   @override
   State<MenuScreen> createState() => _MenuScreenState();
-}
-
-class Appointment {
-  final String id;
-  final String title;
-  final DateTime date;
-
-  Appointment({required this.id, required this.title, required this.date});
 }
 
 class _MenuScreenState extends State<MenuScreen> {
@@ -32,7 +60,7 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────
-  // Cargar citas
+  // Cargar citas del usuario actual
   Future<void> _loadAppointments() async {
     final supabase = Supabase.instance.client;
     final user = supabase.auth.currentUser;
@@ -45,13 +73,9 @@ class _MenuScreenState extends State<MenuScreen> {
         .order('date', ascending: false);
 
     setState(() {
-      medicalAppointments = response.map<Appointment>((data) {
-        return Appointment(
-          id: data['id'].toString(),
-          title: data['title'],
-          date: DateTime.parse(data['date']),
-        );
-      }).toList();
+      medicalAppointments = response
+          .map<Appointment>((data) => Appointment.fromMap(data))
+          .toList();
     });
   }
 
@@ -81,14 +105,7 @@ class _MenuScreenState extends State<MenuScreen> {
 
         final inserted = response.first;
         setState(() {
-          medicalAppointments.insert(
-            0,
-            Appointment(
-              id: inserted['id'].toString(),
-              title: '$doctor - $purpose',
-              date: datetime,
-            ),
-          );
+          medicalAppointments.insert(0, Appointment.fromMap(inserted));
         });
       } catch (e) {
         _showSnackBar('Error al guardar la cita: $e');
@@ -110,8 +127,10 @@ class _MenuScreenState extends State<MenuScreen> {
     );
 
     if (result != null && result is Map<String, dynamic>) {
-      final updatedTitle = result['purpose'];
-      final updatedDateTime = result['datetime'];
+      final doctor = result['doctor'] as String;
+      final purpose = result['purpose'] as String;
+      final updatedDateTime = result['datetime'] as DateTime;
+      final updatedTitle = '$doctor - $purpose';
 
       try {
         await Supabase.instance.client.from('appointments').update({
@@ -124,6 +143,7 @@ class _MenuScreenState extends State<MenuScreen> {
             id: appointment.id,
             title: updatedTitle,
             date: updatedDateTime,
+            userId: appointment.userId,
           );
         });
       } catch (e) {
