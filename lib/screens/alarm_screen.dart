@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:login/screens/BaseScreen.dart';
 class AlarmScreen extends StatefulWidget {
-  const AlarmScreen({Key? key}) : super(key: key);
+  const AlarmScreen({super.key});
 
   @override
   State<AlarmScreen> createState() => _AlarmScreenState();
@@ -19,7 +19,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
     );
 
     if (horaSeleccionada != null) {
-      TextEditingController _notaController = TextEditingController();
+      TextEditingController notaController = TextEditingController();
 
       showDialog(
         context: context,
@@ -27,7 +27,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
           return AlertDialog(
             title: const Text('Agregar Nota de Alarma'),
             content: TextField(
-              controller: _notaController,
+              controller: notaController,
               decoration: const InputDecoration(hintText: 'Ej: Tomar medicina'),
             ),
             actions: [
@@ -42,7 +42,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
                   setState(() {
                     alarmas.add({
                       'hora': horaSeleccionada,
-                      'nota': _notaController.text,
+                      'nota': notaController.text,
                       'activo': true,
                     });
                   });
@@ -73,10 +73,6 @@ class _AlarmScreenState extends State<AlarmScreen> {
     final now = DateTime.now();
     final dt = DateTime(now.year, now.month, now.day, hora.hour, hora.minute);
     return DateFormat.jm().format(dt);
-  }
-
-  void _onBottomNavTapped(int index) {
-    // Aquí agregas la lógica de navegación si es necesario
   }
 
   @override
@@ -126,8 +122,8 @@ class _AlarmScreenState extends State<AlarmScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _agregarAlarma,
-        child: const Icon(Icons.add),
         backgroundColor: Colors.blue,
+        child: const Icon(Icons.add),
       ),
     );
   }
