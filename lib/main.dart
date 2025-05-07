@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-
 import 'package:supabase_flutter/supabase_flutter.dart'; // Conexión BD
 
 // Importaciones de pantallas
@@ -13,11 +12,9 @@ import 'screens/plan_screen.dart';
 import 'screens/menu_screen.dart';
 import 'screens/configuration_screen.dart';
 import 'screens/family_screen.dart';
-// import 'screens/calendar_screen.dart'; ← Ya no se necesita en rutas
-import 'screens/chat_screen.dart';
+import 'screens/chat_screen.dart';  // Asegúrate de importar la pantalla de chat
 import 'screens/alarm_screen.dart';
 import 'screens/clinic_list.dart';
-//import 'screens/contact_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/mediclist_screen.dart';
 import 'screens/profilecosult_screen.dart';
@@ -70,7 +67,6 @@ class MyApp extends StatelessWidget {
         '/alarma': (context) => AlarmScreen(),
         '/clinicas': (context) => ClinicListScreen(),
         '/location': (context) => MedicalMapScreen(),
-        //'/contacto': (context) => ContactScreen(),
         '/historial': (context) => UploadScreen(),
         '/medicamentos': (context) => MedicListScreen(),
         '/perfilconsulta': (context) => ConsultaScreen(),
@@ -81,7 +77,7 @@ class MyApp extends StatelessWidget {
         '/error': (context) => FailureScreen(),
         '/ayuda': (context) => HelpScreen(),
       },
-      // Manejo de rutas con argumentos como receiverName
+      // Manejo de rutas con parámetros (especialmente para el chat)
       onGenerateRoute: (settings) {
         if (settings.name == '/chat') {
           final args = settings.arguments as Map<String, dynamic>;
