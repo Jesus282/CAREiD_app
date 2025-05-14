@@ -114,7 +114,8 @@ class BaseScreen extends StatelessWidget {
         _navigateTo(context, '/location');
         break;
       case 2:
-        _navigateTo(context, '/chat');
+        // Aquí pasamos el parámetro correctamente al navegar al chat
+        _navigateTo(context, '/chat', arguments: {'receiverName': 'nombre del receptor'});
         break;
       case 3:
         _navigateTo(context, '/historial');
@@ -180,7 +181,7 @@ class BaseScreen extends StatelessWidget {
     }).toList();
   }
 
-  void _navigateTo(BuildContext context, String routeName) {
-    Navigator.pushReplacementNamed(context, routeName);
+  void _navigateTo(BuildContext context, String routeName, {Object? arguments}) {
+    Navigator.pushReplacementNamed(context, routeName, arguments: arguments);
   }
 }

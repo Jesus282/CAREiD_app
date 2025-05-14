@@ -3,16 +3,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class ChatListScreen extends StatefulWidget {
+class ChatScreen extends StatefulWidget {
   final String receiverName;
 
-  const ChatListScreen({super.key, required this.receiverName});
+  const ChatScreen({Key? key, required this.receiverName}) : super(key: key);
 
   @override
-  State<ChatListScreen> createState() => _ChatScreenState();
+  State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatListScreen> {
+class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -25,7 +25,7 @@ class _ChatScreenState extends State<ChatListScreen> {
       'text': text,
       'sender': currentUser.email ?? 'Anónimo',
       'receiver': widget.receiverName,
-      'timestamp': FieldValue.serverTimestamp(),
+      'Tiempo': FieldValue.serverTimestamp(),
       'read': false,
     });
 
@@ -46,7 +46,7 @@ class _ChatScreenState extends State<ChatListScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('messages')
-                  .orderBy('timestamp', descending: false)
+                  .orderBy('Tiempo', descending: false)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
@@ -56,31 +56,33 @@ class _ChatScreenState extends State<ChatListScreen> {
                 final allMessages = snapshot.data!.docs;
 
                 final messages = allMessages.where((msg) {
-                  final sender = msg['sender'];
-                  final receiver = msg['receiver'];
-                  return (sender == currentUserEmail &&
-                          receiver == widget.receiverName) ||
-                      (sender == widget.receiverName &&
-                          receiver == currentUserEmail);
+                  final data = msg.data() as Map<String, dynamic>;
+                  final sender = data['sender'] ?? '';
+                  final receiver = data['receiver'] ?? '';
+                  return (sender == currentUserEmail && receiver == widget.receiverName) ||
+                      (sender == widget.receiverName && receiver == currentUserEmail);
                 }).toList();
+
+                if (messages.isEmpty) {
+                  return const Center(child: Text('No hay mensajes aún.'));
+                }
 
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
-                    final msg = messages[index];
-                    final text = msg['text'] ?? '';
-                    final sender = msg['sender'] ?? '';
+                    final data = messages[index].data() as Map<String, dynamic>;
+
+                    final text = data['text'] ?? '';
+                    final sender = data['sender'] ?? '';
                     final isMe = sender == currentUserEmail;
 
-                    final Timestamp? timestamp = msg['timestamp'];
-                    final dateTime = timestamp?.toDate();
-                    final timeFormatted = dateTime != null
-                        ? DateFormat('hh:mm a').format(dateTime)
-                        : 'Enviando...';
-
-                    // DEBUG
-                    print("Mensaje de $sender a ${msg['receiver']}: $text");
+                    final Timestamp? timestamp = data['Tiempo'];
+                    String timeFormatted = 'Enviando...';
+                    if (timestamp != null) {
+                      final dateTime = timestamp.toDate();
+                      timeFormatted = DateFormat('hh:mm a').format(dateTime);
+                    }
 
                     return Align(
                       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -88,7 +90,8 @@ class _ChatScreenState extends State<ChatListScreen> {
                         margin: const EdgeInsets.symmetric(vertical: 4),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width * 0.7),
+                          maxWidth: MediaQuery.of(context).size.width * 0.7,
+                        ),
                         decoration: BoxDecoration(
                           color: isMe ? Colors.blueAccent : Colors.grey.shade300,
                           borderRadius: BorderRadius.circular(16),
