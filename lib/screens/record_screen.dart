@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 
 class DocumentListScreen extends StatefulWidget {
   const DocumentListScreen({super.key});
@@ -111,6 +111,80 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
             label: 'Chat',
           ),
         ],
+      ),
+    );
+  }
+}
+*/
+import 'package:flutter/material.dart';
+import 'package:login/screens/BaseScreen.dart';
+
+class DocumentListScreen extends StatefulWidget {
+  const DocumentListScreen({super.key});
+
+  @override
+  _DocumentListScreenState createState() => _DocumentListScreenState();
+}
+
+class _DocumentListScreenState extends State<DocumentListScreen> {
+  final List<String> documentTitles = List.generate(20, (i) => 'Documento ${i + 1}');
+
+  List<Color> generateBlueGradient(int count) {
+    return List<Color>.generate(count, (index) {
+      final t = index / (count - 1 == 0 ? 1 : count - 1);
+      return Color.lerp(
+        const Color(0xFFBBDEFB), // Azul claro
+        const Color(0xFF1976D2), // Azul intenso
+        t,
+      )!;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = generateBlueGradient(documentTitles.length);
+
+    return BaseScreen(
+      scaffoldKey: GlobalKey<ScaffoldState>(),
+      title: 'Archivos Subidos',
+      currentIndex: 3, // índice correspondiente a esta pantalla si aplica
+      body: ListView.builder(
+        itemCount: documentTitles.length,
+        itemBuilder: (context, index) {
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colors[index],
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.document_scanner, color: Colors.white, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    documentTitles[index],
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart'; // Conexión BD
 
 // Importaciones de pantallas
@@ -12,9 +11,11 @@ import 'screens/plan_screen.dart';
 import 'screens/menu_screen.dart';
 import 'screens/configuration_screen.dart';
 import 'screens/family_screen.dart';
-import 'screens/chat_screen.dart';  // Asegúrate de importar la pantalla de chat
+// import 'screens/calendar_screen.dart'; ← Ya no se necesita en rutas
+import 'screens/chatpersonal.dart';
 import 'screens/alarm_screen.dart';
 import 'screens/clinic_list.dart';
+//import 'screens/contact_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/mediclist_screen.dart';
 import 'screens/profilecosult_screen.dart';
@@ -23,20 +24,17 @@ import 'screens/record_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/help_screen.dart';
 import 'screens/location_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'screens/chatlist.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Inicialización de Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
 
   // Inicialización de Supabase
   await Supabase.initialize(
     url: 'https://mgbdvzesfyrzqdikalub.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nYmR2emVzZnlyenFkaWthbHViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNzAyMzIsImV4cCI6MjA2MDg0NjIzMn0.sU3O8DpBLqS9AP9osi796ZX-wmZgFMDOl0oQEmLw8uw',
+    
   );
 
   runApp(const MyApp());
@@ -67,6 +65,7 @@ class MyApp extends StatelessWidget {
         '/alarma': (context) => AlarmScreen(),
         '/clinicas': (context) => ClinicListScreen(),
         '/location': (context) => MedicalMapScreen(),
+        //'/contacto': (context) => ContactScreen(),
         '/historial': (context) => UploadScreen(),
         '/medicamentos': (context) => MedicListScreen(),
         '/perfilconsulta': (context) => ConsultaScreen(),
@@ -76,20 +75,17 @@ class MyApp extends StatelessWidget {
         '/plan': (context) => PlanScreen(),
         '/error': (context) => FailureScreen(),
         '/ayuda': (context) => HelpScreen(),
-      },
-      // Manejo de rutas con parámetros (especialmente para el chat)
-      onGenerateRoute: (settings) {
-        if (settings.name == '/chat') {
-          final args = settings.arguments as Map<String, dynamic>;
-          return MaterialPageRoute(
-            builder: (context) {
-              return ChatListScreen(receiverName: args['receiverName']);
-            },
-          );
-        }
-
-        return null;
-      },
+        '/chat': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, String>;
+          return ChatScreen(receiverName: args['receiverName']!);
+        },
+         '/chatlist': (context) => const ChatListScreen(),
+'/chat': (context) {
+final receiverName = ModalRoute.of(context)!.settings.arguments as String;
+return ChatScreen(receiverName: receiverName);
+},
+      // Manejo de rutas con argumentos como receiverName
+      }
     );
   }
 }

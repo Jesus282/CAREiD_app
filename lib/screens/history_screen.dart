@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:path/path.dart' as path;
+import 'package:login/screens/BaseScreen.dart';
 
 class UploadScreen extends StatefulWidget {
   const UploadScreen({super.key});
@@ -12,16 +13,16 @@ class UploadScreen extends StatefulWidget {
 
 class _UploadScreenState extends State<UploadScreen> {
   bool isUploading = false;
-  int _currentIndex = 0;
-
   final supabase = Supabase.instance.client;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Future<void> uploadFile() async {
-    setState(() {
-      isUploading = true;
-    });
+    setState(() => isUploading = true);
 
-    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
 
     if (result != null && result.files.single.bytes != null) {
       final file = result.files.single;
@@ -29,14 +30,14 @@ class _UploadScreenState extends State<UploadScreen> {
       final storagePath = 'pdfs/$fileName';
 
       try {
-        // Subir archivo a Supabase Storage
-        final storageResponse = await supabase.storage
-            .from('pdfs')
-            .uploadBinary(storagePath, file.bytes!, fileOptions: FileOptions(contentType: 'application/pdf'));
+        await supabase.storage.from('pdfs').uploadBinary(
+          storagePath,
+          file.bytes!,
+          fileOptions: FileOptions(contentType: 'application/pdf'),
+        );
 
         final publicUrl = supabase.storage.from('pdfs').getPublicUrl(storagePath);
 
-        // Insertar metadata en la tabla pdf_uploads
         await supabase.from('pdf_uploads').insert({
           'file_name': file.name,
           'file_url': publicUrl,
@@ -54,39 +55,24 @@ class _UploadScreenState extends State<UploadScreen> {
       }
     }
 
-    setState(() {
-      isUploading = false;
-    });
+    setState(() => isUploading = false);
   }
 
   void goToDocumentList() {
     Navigator.pushNamed(context, '/registroclinico');
   }
 
-  void _onBottomNavTapped(int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, '/menu');
-        break;
-      case 1:
-        Navigator.pushReplacementNamed(context, '/location');
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, '/chat');
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF2FBFF),
+    return BaseScreen(
+      scaffoldKey: _scaffoldKey,
+      currentIndex: 3,
+      title: 'Subir Historial Médico',
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
                 'Historial Médico',
@@ -158,29 +144,6 @@ class _UploadScreenState extends State<UploadScreen> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-          _onBottomNavTapped(index);
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menú',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.location_on),
-            label: 'Ubicación',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
-          ),
-        ],
       ),
     );
   }
